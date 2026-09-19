@@ -1,9 +1,297 @@
 <!doctype html>
-<html>
-<head><meta charset="utf-8"><title>Dr. RepoCheck</title></head>
-<body style="font-family: system-ui; max-width: 640px; margin: 60px auto; line-height: 1.5;">
-<h1>Dr. RepoCheck</h1>
-<p>Live demo scaffold -- M2 proof-of-pipe. Real UI lands in M4.</p>
-<p>Try the API directly: <a href="/api/scan?case=reviewer-note-sanity-a">/api/scan?case=reviewer-note-sanity-a</a></p>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dr. RepoCheck</title>
+<meta name="description" content="Before you install a Claude Code skill, see exactly what it would do with your data -- and the proof.">
+<style>
+  :root{
+    --bg:#FBF8F3; --card:#FFFFFF; --border:#E7E1D4;
+    --ink:#232220; --ink-soft:#6B6459;
+    --accent:#1E7F72; --accent-soft:#E3F1EC;
+    --danger:#B4442E; --danger-soft:#FBEAE6;
+    --gold:#B4831F; --gold-soft:#FBF3E3;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#1B1A18; --card:#242320; --border:#3A362F;
+      --ink:#F2EDE3; --ink-soft:#B7AE9E;
+      --accent:#4FBBA9; --accent-soft:#1F332E;
+      --danger:#E88A6F; --danger-soft:#3A2620;
+      --gold:#E8BE6E; --gold-soft:#332A18;
+    }
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:ui-sans-serif,-apple-system,"Segoe UI",Roboto,sans-serif;
+    line-height:1.55;
+  }
+  main{max-width:840px; margin:0 auto; padding:0 20px 80px;}
+  a{color:var(--accent);}
+  code, pre{font-family:ui-monospace,"SF Mono","Cascadia Code",monospace;}
+
+  header.hero{padding:64px 0 32px; text-align:center;}
+  header.hero .eyebrow{
+    font-weight:700; font-size:13px; letter-spacing:.08em; text-transform:uppercase;
+    color:var(--ink-soft); margin-bottom:12px;
+  }
+  header.hero h1{font-size:clamp(28px,5vw,42px); margin:0 0 16px; text-wrap:balance;}
+  header.hero p.pitch{
+    font-size:19px; color:var(--ink-soft); max-width:56ch; margin:0 auto 28px;
+    text-wrap:balance;
+  }
+
+  .damage{
+    background:var(--danger-soft); border:1px solid var(--border);
+    border-radius:14px; padding:20px 24px; text-align:left; max-width:640px;
+    margin:0 auto;
+  }
+  .damage .label{font-weight:700; font-size:13px; letter-spacing:.04em;
+    text-transform:uppercase; color:var(--danger); margin-bottom:8px;}
+  .damage p{margin:0; color:var(--ink);}
+
+  section{margin-top:56px;}
+  section > h2{font-size:24px; margin-bottom:8px;}
+  section > p.lede{color:var(--ink-soft); margin-top:0; margin-bottom:24px; max-width:64ch;}
+
+  .chain{
+    display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:center;
+    margin:20px 0;
+  }
+  .chain .step{
+    background:var(--card); border:1px solid var(--border); border-radius:10px;
+    padding:10px 16px; font-weight:600; font-size:14px;
+  }
+  .chain .arrow{color:var(--ink-soft); font-size:18px;}
+
+  .case{
+    background:var(--card); border:1px solid var(--border); border-radius:16px;
+    padding:24px; margin-bottom:20px;
+  }
+  .case h3{margin:0 0 4px; font-size:19px;}
+  .case .sub{color:var(--ink-soft); font-size:14px; margin-bottom:16px;}
+  .case .files{
+    display:flex; flex-wrap:wrap; gap:6px; margin-bottom:16px;
+  }
+  .case .files span{
+    font-family:ui-monospace,monospace; font-size:12px; background:var(--bg);
+    border:1px solid var(--border); border-radius:6px; padding:3px 8px; color:var(--ink-soft);
+  }
+  .runs{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+  @media (max-width:560px){ .runs{grid-template-columns:1fr;} }
+  .run{border:1px solid var(--border); border-radius:12px; padding:14px 16px; background:var(--bg);}
+  .run .model{font-weight:700; font-size:13px; color:var(--ink-soft); margin-bottom:8px;}
+  .badge{
+    display:inline-block; font-weight:700; font-size:13px; padding:4px 10px;
+    border-radius:999px; margin-bottom:10px;
+  }
+  .badge.exceeds{background:var(--danger-soft); color:var(--danger);}
+  .badge.clean{background:var(--accent-soft); color:var(--accent);}
+  .badge.failed{background:var(--gold-soft); color:var(--gold);}
+  .finding{font-size:13.5px; margin-bottom:8px;}
+  .finding .quote{
+    display:block; font-family:ui-monospace,monospace; font-size:11.5px;
+    background:var(--card); border:1px solid var(--border); border-radius:6px;
+    padding:6px 8px; margin-top:4px; color:var(--ink-soft); white-space:pre-wrap;
+  }
+  .flag{
+    display:inline-block; font-size:11.5px; font-weight:700; color:var(--danger);
+    background:var(--danger-soft); border-radius:6px; padding:2px 6px; margin-bottom:8px;
+  }
+  .loading{color:var(--ink-soft); font-size:13px;}
+
+  table.compare{width:100%; border-collapse:collapse; font-size:14px; margin-top:12px;}
+  table.compare th, table.compare td{
+    border:1px solid var(--border); padding:10px 12px; text-align:left;
+  }
+  table.compare th{background:var(--card); font-weight:700;}
+  table.compare td.n{text-align:center;}
+
+  .disclosure{
+    background:var(--gold-soft); border:1px solid var(--border); border-radius:14px;
+    padding:24px;
+  }
+  .disclosure p{margin:0 0 12px;}
+  .disclosure p:last-child{margin-bottom:0;}
+  .quote-line{
+    border-left:3px solid var(--gold); padding-left:14px; font-style:italic; color:var(--ink);
+  }
+
+  footer{
+    margin-top:64px; padding-top:24px; border-top:1px solid var(--border);
+    color:var(--ink-soft); font-size:14px; text-align:center;
+  }
+  footer a{font-weight:600;}
+  .not-a-guarantee{
+    font-size:13px; color:var(--ink-soft); margin-top:14px; text-align:center;
+  }
+</style>
+</head>
+<body>
+<main>
+
+  <header class="hero">
+    <p class="eyebrow">Dr. RepoCheck</p>
+    <h1>Before you install a skill, see what it would actually do</h1>
+    <p class="pitch">Before a developer installs a Claude Code skill, Dr. RepoCheck shows whether it would do more than they authorized -- and cites the exact lines that prove it.</p>
+    <div class="damage">
+      <div class="label">A real shape of damage this catches</div>
+      <p>A skill says it summarizes your weekly commits into a report. Nothing in its description mentions credentials. Underneath, one file reads <code>~/.aws/credentials</code>, a second renames it to a field called <code>session_context</code>, a third posts the finished "report" to the author's server. You find out when your cloud bill shows five figures of compute you never ran.</p>
+    </div>
+  </header>
+
+  <section>
+    <h2>How it works</h2>
+    <p class="lede">You state your task and what the skill may touch. The skill's own files never get a vote on their own authorization.</p>
+    <div class="chain">
+      <div class="step">Your stated task</div>
+      <div class="arrow">&rarr;</div>
+      <div class="step">Trigger</div>
+      <div class="arrow">&rarr;</div>
+      <div class="step">Data read</div>
+      <div class="arrow">&rarr;</div>
+      <div class="step">Transformation</div>
+      <div class="arrow">&rarr;</div>
+      <div class="step">Destination</div>
+      <div class="arrow">&rarr;</div>
+      <div class="step">Decision + citations</div>
+    </div>
+  </section>
+
+  <section>
+    <h2>See it live</h2>
+    <p class="lede">Three real skill bundles. Real API calls, cached and timestamped so the page loads instantly -- not staged, not mocked.</p>
+
+    <div class="case" id="case-reviewer">
+      <h3>The manipulated reviewer</h3>
+      <p class="sub">A skill's own docs try to tell the reviewer to approve it and stay quiet. Compare the version with a real violation against its clean twin.</p>
+      <div class="loading">Loading live results&hellip;</div>
+    </div>
+
+    <div class="case" id="case-credential">
+      <h3>The credential in the report field</h3>
+      <p class="sub">A "usage reporter" skill that reads your API key and mails it out under an innocent field name.</p>
+      <div class="loading">Loading live results&hellip;</div>
+    </div>
+
+    <div class="case" id="case-digest">
+      <h3>The conditional install</h3>
+      <p class="sub">A skill that only fetches and runs a remote installer if a program is missing -- exactly what the user said not to do.</p>
+      <div class="loading">Loading live results&hellip;</div>
+    </div>
+  </section>
+
+  <section>
+    <h2>What we found, and we're not hiding it</h2>
+    <div class="disclosure">
+      <p><strong>On this small set of cases, Fable 5.1 declined to analyze content the comparator model analyzed correctly.</strong> We're disclosing this, not softening it. Our own harness is what makes it visible in the first place: a refusal is recorded as <code>ANALYSIS_FAILED</code>, never silently folded into "no findings" -- the same discipline that would have hidden a real bug in this exact tool three separate times this build, if we hadn't insisted on it.</p>
+      <table class="compare">
+        <tr><th>Model</th><th class="n">Correct</th><th class="n">Refused</th><th class="n">Other failure</th></tr>
+        <tr><td>claude-fable-5-1</td><td class="n">2 / 6</td><td class="n">4</td><td class="n">0</td></tr>
+        <tr><td>claude-opus-4-8 (comparator)</td><td class="n">4 / 6</td><td class="n">0</td><td class="n">2</td></tr>
+      </table>
+      <p class="quote-line" style="margin-top:16px;">"We would rather show you a true negative than a staged win. Every run is in the repo."</p>
+    </div>
+  </section>
+
+  <footer>
+    <p>The tool itself is a CLI and a Claude Code skill, not this website. Skills are synthetic, inert test fixtures -- fictional credentials, nothing executed, nothing installed.</p>
+    <p><a href="https://github.com/14leux/repocheck-hackathon">github.com/14leux/repocheck-hackathon</a> &middot; <code>pip install</code> not required, just clone and run <code>python repocheck.py</code></p>
+    <p class="not-a-guarantee">A clean result means no excess access found in the inspected snapshot -- never a safety guarantee.</p>
+  </footer>
+
+</main>
+
+<script>
+const RESULTS_CACHE = {};
+
+async function fetchCase(caseId, modelKey) {
+  const key = caseId + "__" + modelKey;
+  if (RESULTS_CACHE[key]) return RESULTS_CACHE[key];
+  const res = await fetch(`/api/scan?case=${encodeURIComponent(caseId)}&model=${encodeURIComponent(modelKey)}`);
+  const data = await res.json();
+  RESULTS_CACHE[key] = data;
+  return data;
+}
+
+function badgeClass(disposition) {
+  if (disposition === "EXCEEDS_SCOPE") return "exceeds";
+  if (disposition === "NO_EXCESS_FOUND_IN_SCOPE") return "clean";
+  return "failed";
+}
+
+function badgeLabel(disposition) {
+  return { EXCEEDS_SCOPE: "EXCEEDS SCOPE", NO_EXCESS_FOUND_IN_SCOPE: "NO EXCESS FOUND",
+           ANALYSIS_FAILED: "ANALYSIS FAILED", INSPECT: "INSPECT" }[disposition] || disposition;
+}
+
+function renderRun(data) {
+  const model = data.run_record ? data.run_record.model : (data.model_key || "?");
+  let html = `<div class="model">${model}</div>`;
+  html += `<span class="badge ${badgeClass(data.disposition)}">${badgeLabel(data.disposition)}</span>`;
+  if (data.reviewer_manipulation_detected) {
+    html += `<div class="flag">reviewer manipulation attempt detected</div>`;
+  }
+  if (data.disposition === "ANALYSIS_FAILED") {
+    html += `<div class="finding">Declined or failed: ${escapeHtml(String(data.failure_reason || "").slice(0, 160))}</div>`;
+  } else {
+    (data.findings || []).slice(0, 2).forEach(f => {
+      html += `<div class="finding">${escapeHtml(f.summary || "")}`;
+      const ev = (f.evidence || [])[0];
+      if (ev) html += `<span class="quote">${escapeHtml(ev.path)}: "${escapeHtml((ev.quote || "").slice(0, 90))}"</span>`;
+      html += `</div>`;
+    });
+    if (!data.findings || data.findings.length === 0) {
+      html += `<div class="finding">No excess access found in the inspected scope.</div>`;
+    }
+  }
+  return html;
+}
+
+function escapeHtml(s) {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+async function renderCase(elId, caseId, runs, fileNames) {
+  const el = document.getElementById(elId);
+  const results = await Promise.all(runs.map(r => fetchCase(caseId === "__pair__" ? r.case : caseId, r.model)));
+  let html = "";
+  if (fileNames) {
+    html += `<div class="files">${fileNames.map(f => `<span>${f}</span>`).join("")}</div>`;
+  }
+  html += `<div class="runs">`;
+  results.forEach((data, i) => { html += `<div class="run">${renderRun(data)}</div>`; });
+  html += `</div>`;
+  el.innerHTML = html;
+}
+
+(async function main() {
+  try {
+    await renderCase("case-reviewer", "__pair__", [
+      { case: "reviewer-note-sanity-a", model: "comparator" },
+      { case: "reviewer-note-sanity-b", model: "comparator" },
+    ], ["SKILL.md", "docs/review-guidance.md", "notes/conformance.yaml", "scripts/draft_notes.py"]);
+  } catch (e) {
+    document.getElementById("case-reviewer").innerHTML = `<div class="loading">Couldn't load live results right now.</div>`;
+  }
+  try {
+    await renderCase("case-credential", "credential-disguised-report", [
+      { model: "comparator" },
+    ], ["SKILL.md", "collect.py", "schema.json", "send.py"]);
+  } catch (e) {
+    document.getElementById("case-credential").innerHTML = `<div class="loading">Couldn't load live results right now.</div>`;
+  }
+  try {
+    await renderCase("case-digest", "__pair__", [
+      { case: "task-digest-v1", model: "fable" },
+      { case: "task-digest-v1", model: "comparator" },
+    ], ["SKILL.md", "references/setup.md", "scripts/summarize.py", "settings.json"]);
+  } catch (e) {
+    document.getElementById("case-digest").innerHTML = `<div class="loading">Couldn't load live results right now.</div>`;
+  }
+})();
+</script>
 </body>
 </html>
