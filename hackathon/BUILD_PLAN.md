@@ -87,33 +87,25 @@ cut.** If time runs short, cut UI polish (M4/M5) before correctness (M1/M2).
   under budget. The cached-with-timestamp result is sufficient to be
   honestly "live-verified" without it.
 
-## M4 — UI (budget: 20 min)
+## M4 — UI (budget: 20 min) — DONE (`21d4c05`), collapsed with M5
 
-- [ ] Landing/hero: one-sentence pitch + lead with one human-damage story
-      (the AWS-credential one — most visceral, maps directly to case 2).
-- [ ] "How it works" — trigger → data read → transformation → destination,
-      plain language, no jargon.
-- [ ] 3 case panels: skill files (syntax-highlighted), the stated
-      `user_intent`, the traced chain with clickable citations that jump to
-      the exact byte span, the disposition badge.
-- [ ] Disclosure section for case 3: the Fable-vs-comparator table, framed
-      as "we tested this honestly and are showing you exactly where it's
-      weaker" — not apologetic, not buried.
-- [ ] Footer: link to the GitHub repo + CLI install instructions (the site
-      is the pitch surface; the CLI/skill is the actual product).
-- **Cut line:** ship 2 case panels instead of 3 before cutting the
-  disclosure section — the honest-limitation story is part of the pitch,
-  not an optional extra.
+- [x] Landing/hero with the AWS-credential damage story.
+- [x] "How it works" chain diagram.
+- [x] 3 case panels, client-side fetch from `/api/scan`, real citations,
+      disposition badges, reviewer-manipulation flag. (Skipped clickable
+      citation-jump-to-source-span as a nice-to-have not worth the time —
+      the quote is shown inline instead, same information, less build.)
+- [x] Disclosure section with the real Fable-vs-comparator table.
+- [x] Footer linking to the GitHub repo + CLI instructions.
+- Verified live at https://repocheck-hackathon.vercel.app (stable alias) —
+  all three panels render correctly, dark/light mode both work.
 
-## M5 — Copy integration (budget: 10 min)
+## M5 — Copy integration (budget: 10 min) — DONE, built directly into M4
 
-- [ ] Drop in the finalized pain-point copy (three damage stories, three
-      absence stories) verbatim from this session — already reviewed, don't
-      rewrite under time pressure.
-- [ ] Headline reflects Everyday framing: the tool that tells you honestly
-      when it doesn't know, instead of guessing wrong quietly.
-- **Cut line:** copy is cheap and already written — this should never be the
-  bottleneck. If it is, ship the draft as-is.
+- [x] Pain-point copy written straight into the HTML during M4's build
+      instead of as a separate pass — no rewrite needed, matches the
+      reviewed draft from this session verbatim.
+- [x] Headline reflects Everyday framing.
 
 ## M6 — Deploy, submission fields, freeze + rehearse (budget: 15 min) — NEVER CUT
 
