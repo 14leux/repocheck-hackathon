@@ -1,6 +1,53 @@
 # tasks/context.md
 
-**Status:** CLOSED
+**Status:** IN PROGRESS
+
+## Re-entry (2026-09-20) — another operator worked since the last close
+
+Reopened at Mailu's request. `git fetch` + `git log e36a326..HEAD` showed
+7 commits landed on `origin/main` since this file's last close
+(`e36a326`), from another operator/session, not this one:
+`c4a1d31` (live static scan + Anthropic BYOK preview), `2f11370`,
+`56a575d`, `0a6a7f3`, `c7bd446` (narrative/evidence-first page split),
+`31350a4`, `c1e7585` (current HEAD). Local working tree was already in
+sync with `origin/main` (0 ahead / 0 behind) before this session touched
+anything — no merge or rebase was needed.
+
+**What changed, read from the diff, not assumed:** two new public API
+routes, `api/check.py` (free static scan of an arbitrary public GitHub
+target, process-local per-IP rate limit, explicitly documented as a
+"starter guard" needing a durable edge limiter before real public
+traffic) and `api/deep.py` (Anthropic deep-scan on an arbitrary GitHub
+target using a request-scoped, never-stored, never-URL'd BYOK key —
+reuses this session's own `select_high_risk_files_repo`/
+`select_skill_bundle_files`, not a reimplementation). Plus
+`api/demo_page.py`/`api/how_it_works_page.py` and a narrative/evidence
+page split, wired via new `vercel.json` rewrites for `/demo` and
+`/how-it-works`.
+
+**This reverses a decision made earlier this stretch**, not silently —
+flagging it because BUILD_PLAN.md M2 explicitly chose "fixed demo cases
+only" over "arbitrary user-submitted repos" as the safer scope for a
+public site under a clock. That constraint no longer holds: arbitrary
+GitHub targets are now scannable publicly (free static tier) and via
+BYOK (paid/deep tier). Not reverted per the standing instruction to
+treat an external change as deliberate rather than undo it — the new
+code is careful about the things that matter (never executes scanned
+code, key never stored/logged/URL'd, per-IP limiting present even if
+acknowledged as not production-durable), consistent with `CLAUDE.md`'s
+non-negotiables. Not independently security-reviewed by this session.
+
+**Verified before reporting status, not assumed:** all new `api/*.py`
+files `py_compile` clean; `test_deep_scan_bundle.py` 11/11,
+`test_provider_swap.py`, `test_fixtures.py` (2 detected/4 clean/4
+known-gap) all still pass unmodified; `hackathon/test_build_requirements.py`
+unchanged at 49/74; live site returns 200 on `/`, `/demo`, and
+`/how-it-works`.
+
+**Next step:** search GitHub for open pull requests (Mailu's request,
+in progress as of this checkpoint).
+
+---
 
 ## Full close, post-H1 stretch (2026-09-20) — live Everyday-track demo shipped
 
