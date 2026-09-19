@@ -357,3 +357,49 @@ test on verdict.py, no weekly-deep/dependabot, no gitleaks scan ever run.
       that their sanity variants have characterized the refusal boundary,
       or defer per the card's original held-out timing
 - [ ] Demo narrative and rehearsal, once the card can freeze
+
+## Post-H1 ad-hoc build (2026-09-20) — PR reviews, track switch, live Vercel demo
+
+- [x] Reviewed and partially merged `kelly-leon`'s PR #1 — explicit Fable
+      5.1 model selection landed (`7bb5885`), duplicate fixture and stale
+      checkpoint diff left unmerged; PR closed with explanatory comment
+- [x] Reviewed and merged whole `Everline Mipata`'s PR #2 — differential
+      static-pillar test harness (`97320a1`), a real undocumented
+      limitation found and disclosed (single-file co-occurrence gap)
+- [x] Reviewed Steven Kamau Muriu's submission guide — data table verified
+      exact against source reports; appendix `git am` patch found not to
+      apply cleanly, reconstructed directly instead; B6 (skill-mode CLI
+      sending only SKILL.md) found and fixed (`49bdba3`)
+- [x] Council pressure-test of the Breakthrough track given the platform's
+      actual fixed rules vs. verified Fable-vs-comparator data
+      (`council-transcript-20260920T001404.md`) — recommended checking
+      track-switch eligibility before more build time
+- [x] Switched submission track: Breakthrough → Everyday (DECISIONS.md #029)
+- [x] Full milestoned build plan executed (`hackathon/BUILD_PLAN.md`
+      M0–M6): out-of-bundle intent files for 3 demo cases, live Vercel
+      Python pipe proven end-to-end, cache-only public serving
+      (DECISIONS.md #030), full demo site built and deployed live at
+      `https://repocheck-hackathon.vercel.app`, submission field drafts
+      written
+- [x] Real bug found and fixed during cache generation: citation
+      validation false-failing on a multi-line markdown blockquote,
+      confirmed on every model tested, not Fable-specific (KNOWLEDGE.md)
+- [ ] **Carried forward, not blocking:** D-1's original scope (organizer
+      answers for a *Breakthrough* freeze) is superseded by the track
+      switch, not resolved — no longer the active blocker since the team
+      is no longer pursuing a measured Breakthrough comparison run. The
+      EXPERIMENT_CARD.md itself was not updated to reflect the track
+      switch this session (out of scope for this stretch; card still
+      reads Breakthrough throughout) — worth a pass before anyone reads
+      it expecting it to match the actual submission
+- [ ] Requires Mailu personally: record ~90s backup screen capture
+      (labeled "previous run"), do one timed rehearsal
+- [ ] `credential-disguised-report`'s cached comparator result flags
+      `reviewer_manipulation_detected: true` without an obvious textual
+      basis in that fixture — displayed as-is, not chased under the clock,
+      worth a closer look later
+- [ ] 17 of 21 P0 items in `hackathon/test_build_requirements.py` remain
+      open beyond what this stretch closed (B3 `output_config.format`, B8
+      frozen-prompt-file+hash, B11 card freeze, most `F1`/`F4` fixture
+      hygiene checks on fixtures not in the demo path) — not blocking the
+      live demo, tracked for whoever picks this up next

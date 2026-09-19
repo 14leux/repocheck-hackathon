@@ -1184,3 +1184,111 @@ skill content. Any future addition to the model-response schema
 (`ModelResponse`) should extend it rather than reintroduce a bare
 string return path, since `analyze()` is kept only as a thin wrapper
 over `analyze_detailed()` for backward compatibility.
+
+---
+
+## DECISION 029 — Switched submission track from Breakthrough to Everyday
+
+**Date:** 2026-09-20
+
+**Context:** The team's original track choice (Breakthrough, session H1)
+predated all live model-comparison data. The platform's actual fixed
+rules were confirmed via screenshot mid-build: "FIXED RULES: ... Show
+what Fable 5.1 does here that the previous model could not," judged
+against "Does Fable 5.1 actually unlock this, or would the old model
+have done it?" The team's own verified data says the opposite of what
+that rule requires — Fable 5.1 scored 2/6 correct and refused 4/6
+cases across 4 independent fixture families, while the comparator
+(claude-opus-4-8) scored 4/6 with 3/3 harmful variants caught. A
+disclosed negative result inside Breakthrough concedes the fixed rule
+rather than satisfying it, regardless of how honestly it's presented.
+
+Pressure-tested via `council-transcript-20260920T001404.md` (8-advisor
+council). Every advisor independently converged on the same point: the
+"no organizer contact" decision (session H1) was about not asking a
+*person* a judgment-call favor — it says nothing about whether track
+selection is a self-service choice. Those had been conflated.
+
+**Decision:** Checked the submission portal directly (reading rules,
+not asking a person) and switched to the Everyday track. The
+architecture claims (`user_intent` supplied outside the analyzed
+artifact, `ANALYSIS_FAILED` as a first-class disclosed result) remain
+the pitch's core; the Fable-vs-comparator finding is now presented as
+a secondary, honest "we tested this rigorously" strength rather than
+managed around as the central risk of a five-minute clock.
+
+**Rejected alternatives:**
+- **Stay in Breakthrough, lead with architecture, disclose the finding
+  honestly in the first 90 seconds** — the council's fallback if track
+  switching had turned out to be unavailable. Rejected once the switch
+  was confirmed possible, since it would still concede the track's own
+  fixed rule regardless of how well-presented the disclosure is.
+- **Reframe "we mapped Fable's refusal boundary" as itself a
+  Fable-specific unlock** — rejected as a disguised version of the
+  cherry-picking the handoff's own rule forbids ("no case is added
+  because an earlier one failed to favor Fable"); it's evidence about a
+  limitation, not an unlock of the tool's actual task.
+
+**Tradeoffs:** Everyday's rubric may weight polish/usefulness over the
+rigorous disclosure methodology this session invested real effort in
+— unverified at decision time, accepted as a reasonable bet given the
+alternative (Breakthrough) was a near-certain miss on its own literal,
+judge-facing question.
+
+**Implications:** All submission copy, the live site's headline
+framing, and the demo script lead with everyday usefulness ("the tool
+that tells you honestly when it doesn't know") rather than a
+model-capability claim. The BUILD_PLAN.md M0-M6 milestones executed
+after this decision assume Everyday framing throughout.
+
+---
+
+## DECISION 030 — Live demo site serves cached results only; no public live-call path
+
+**Date:** 2026-09-20
+
+**Context:** Building a public Vercel demo site (BUILD_PLAN.md) required
+deciding how the site's server-side API function would call the
+Anthropic API without exposing unbounded cost. The original plan
+(BUILD_PLAN.md M3, as drafted) called for caching plus a rate-limited
+"run it again, live" button. Vercel's SSO deployment-protection had to
+be disabled to make the site reachable at all (`vercel project
+protection disable --sso`), which meant the API endpoint became public
+and reachable by anyone, with no rate limiter yet built, the moment it
+was deployed.
+
+**Decision:** `api/scan.py`'s public handler (`do_GET`) never calls the
+Anthropic API at all. The one function that does (`run_case_live()`)
+is invoked only by an offline script
+(`hackathon/generate_demo_cache.py`), run locally with the real key,
+never reachable from a request. The public handler only ever serves a
+pre-generated, committed, timestamped result from `demo_data/`. A
+cache miss returns a 404 naming what's available, not a live fallback
+call.
+
+**Rejected alternatives:**
+- **Rate-limited live re-run button** — the originally planned design.
+  Rejected for this build specifically because implementing a
+  correctly-distributed rate limiter (Vercel KV or equivalent) under a
+  tight clock adds real risk of a bypassable or misconfigured limiter,
+  where the cache-only design has zero live-call surface to misconfigure
+  in the first place. Not rejected as a future capability — still a
+  reasonable stretch addition once there's time to build and test the
+  limiter properly, noted as deferred, not abandoned.
+- **Leave SSO protection on** — rejected because it blocks judges from
+  reaching the site at all, which defeats the purpose of a live-link
+  submission field.
+
+**Tradeoffs:** The site cannot demonstrate a fresh, on-demand live call
+during judging — every visible result was computed ahead of time. This
+is disclosed on the site itself ("cached and timestamped... not staged,
+not mocked") rather than hidden; the cached result is a genuine past
+API call, not a mock, so "live" claims remain honest even without an
+on-demand trigger.
+
+**Implications:** Regenerating or extending the demo case set requires
+running `hackathon/generate_demo_cache.py` locally and redeploying —
+there is no in-product way to add a case without a code change. Any
+future rate-limited live path should be added as a clearly separate,
+audited code path, not a modification of the existing cache-serving
+handler.

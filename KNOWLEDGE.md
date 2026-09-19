@@ -1124,3 +1124,85 @@ edge over the comparator. The demo must include the refusal finding as a
 disclosed step, not omit or soften it. Card D-1 (organizer answers) now
 carries this framing question alongside eligibility/comparator/evidence-
 standard, and remains the single blocking item before the card can freeze.
+
+---
+
+## Post-H1 -- PR review discipline: diff against merge-base, never against a moved main
+
+Reviewing two community PRs this session (`kelly-leon`'s and
+`Everline Mipata`'s) surfaced the same trap twice: `git diff main..pr-branch`
+against a `main` that has moved on since the branch was cut shows dozens
+of unrelated files as "deleted" -- purely an artifact of the branch
+predating work that landed later, not anything the PR author touched.
+The fix is always `git diff $(git merge-base main pr-branch)..pr-branch`,
+which shows only what the branch actually changed. Caught before
+wrongly telling a contributor their PR deletes half the repo.
+
+Separately: a `git am` patch built by hand-assembling diff text (as in
+Steven Kamau Muriu's submission guide appendix) is fragile even when
+transcribed carefully -- it failed to apply cleanly in an isolated
+worktree test (context mismatch on patch 3/4) after fixing one real
+transcription slip. Reconstructing the final file contents directly
+from the source document, rather than trusting the patch chain, is more
+reliable when the patch didn't come from `git format-patch` against a
+repo state you actually have.
+
+## Post-H1 -- B6: skill-mode CLI sent only SKILL.md, silently breaking every cross-file finding
+
+Found via Steven Kamau Muriu's submission guide, verified independently:
+`deep_scan.py`'s `main()` skill mode built `paths = [args[2]]` --
+literally just the one path given on the command line, never the rest
+of the skill's folder. A **correct** model answer citing a helper file
+(`collect.py`) then failed citation validation
+(`_validate_citations`) because that file was never part of the bundle
+sent, silently turning a correct `EXCEEDS_SCOPE` into
+`ANALYSIS_FAILED`. This was worse than B6's original description
+suggested: it meant the documented CLI path could not demonstrate the
+architecture's central claim (cross-file tracing) at all, even though
+every live H1 test had exercised the pipeline correctly via
+hand-built runner scripts that bypassed the CLI entirely. Fixed with
+`select_skill_bundle_files()`, mirroring `select_high_risk_files_repo()`'s
+shape. Verified live against `14leux/repocheck-hackathon`'s own
+`fixtures/task-digest-v1/`. Lesson: a pipeline function accepting the
+right parameters (`run_deep_scan(..., paths)`) proves nothing about
+whether the CLI that's supposed to call it actually does.
+
+## Post-H1 -- citation validation false-failed on a legitimate multi-line blockquote, on every model tested
+
+Building the live demo site's cached case data, `reviewer-note-sanity-b`
+(the safe twin of the reviewer-manipulation pair) failed citation
+validation deterministically -- 3/3 Fable attempts, 2/2 comparator
+attempts, same failure every time. Root cause: `docs/review-guidance.md`
+wrapped its quoted reviewer-steering paragraph across 6 markdown lines,
+each starting `> ` (blockquote continuation). Any model quoting the
+paragraph back as natural prose reflows it and drops the mid-quote
+`\n> ` markers, so `_validate_citations`'s exact-substring check never
+matched -- not a Fable quality issue, confirmed identical across both
+models. Fixed by reflowing the quoted paragraph onto one unwrapped
+line in the fixture (meaning unchanged, `snapshot_digest` recomputed).
+Lesson for future fixture authoring: a quoted passage intended as a
+citation target should never line-wrap with per-line markdown syntax
+(blockquote, list markers) inside it -- reflow to one line, or the
+citation-validation contract will reject a model that quoted correctly
+in substance but not in literal formatting. This is the contract
+working as designed (a real quote must match), not a bug in it -- the
+bug was in the fixture's formatting.
+
+## Post-H1 -- Vercel deployment gotchas: SSO protection on by default, per-deploy URLs are not the stable link
+
+Two operational surprises building the live demo on Vercel, worth
+recording so the next deploy doesn't re-discover them live: (1) Vercel
+projects have SSO/deployment-protection **on by default**, which
+returns a 302 redirect to `vercel.com/sso-api` for every request,
+including production -- looks like a broken deployment, is actually an
+access wall. Fixed with
+`vercel project protection disable <project> --sso`. (2) Every
+`vercel --prod` deploy prints a unique per-deployment URL
+(`repocheck-hackathon-<hash>-<team>.vercel.app`) -- these are
+real but not stable; the project also gets one stable alias
+(`repocheck-hackathon.vercel.app`, only visible in the deploy output as
+"Aliased", easy to miss). Testing against a stale per-deploy hash URL
+after a new deploy looks exactly like a deploy that didn't take effect,
+when the actual new content is live at the stable alias the whole time.
+Use the stable alias for all external links (submission form, README)
+and for testing after every redeploy.

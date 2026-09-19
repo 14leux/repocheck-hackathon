@@ -2,6 +2,134 @@
 
 **Status:** CLOSED
 
+## Full close, post-H1 stretch (2026-09-20) — live Everyday-track demo shipped
+
+**Goal of this stretch:** review and land two community PRs, review a
+third party's submission guide, then pressure-test and execute the
+remaining build against a hard clock — which turned into switching the
+submission track and shipping a full live Vercel demo.
+
+**What was done, end to end:**
+
+1. Reviewed and partially merged `kelly-leon`'s PR #1 (Fable model
+   selection landed, `7bb5885`; duplicate fixture left out; PR closed).
+2. Reviewed and merged whole `Everline Mipata`'s PR #2 (differential
+   static-pillar harness, `97320a1`; PR closed).
+3. Reviewed Steven Kamau Muriu's submission guide: data table verified
+   exact against source reports; its `git am` patch found not to apply
+   cleanly (tested in an isolated worktree, not assumed); B6 (skill-mode
+   CLI sending only `SKILL.md`) found and fixed (`49bdba3`) — the single
+   most consequential bug caught this stretch, since it meant the
+   documented CLI path could never have demonstrated cross-file tracing.
+4. Ran an 8-advisor council against the platform's actual fixed
+   Breakthrough-track rules (confirmed via screenshot) vs. the team's own
+   verified Fable-vs-comparator data (`council-transcript-20260920T001404.md`).
+   Recommendation: check track-switch eligibility (a rules-page read, not
+   an organizer favor) before spending more build time managing
+   disclosure inside a track whose fixed rule the evidence couldn't meet.
+5. Switched track: Breakthrough → Everyday (DECISIONS.md #029).
+6. Executed a full milestoned build (`hackathon/BUILD_PLAN.md` M0–M6):
+   out-of-bundle intent files for 3 demo cases; a live Vercel Python
+   pipe proven end-to-end against the real pipeline; cache-only public
+   serving (DECISIONS.md #030) after discovering the deployed endpoint
+   was public and uncapped; a real fixture bug found and fixed along the
+   way (markdown-blockquote citation mismatch, confirmed on every model
+   tested); a full demo page built and deployed live.
+
+**Live result:** `https://repocheck-hackathon.vercel.app` — hero with a
+named damage story, how-it-works diagram, 3 real case panels (client-side
+fetch, server never makes a live call, serves committed cached-but-real
+results), and an undodged Fable-vs-comparator disclosure table. Verified
+working end to end via the Browser tool, both light and dark mode.
+
+**Not done, carried forward (see `tasks/todo.md` and `.agent/instructions.md`
+Open Items for the full list):**
+- `hackathon/EXPERIMENT_CARD.md` and `HACKATHON_CLAUDE_CODE_HANDOFF.md`
+  still read Breakthrough throughout — not updated for the track switch
+  this stretch (OI-022). Read `DECISIONS.md` #029 alongside them.
+- `credential-disguised-report`'s cached result carries a
+  `reviewer_manipulation_detected: true` flag with no obvious textual
+  basis — displayed as-is, not investigated under the clock (OI-023).
+- 17 of 21 P0 items in `hackathon/test_build_requirements.py` remain open
+  beyond what this stretch closed (B3, B8, B11, most fixture-hygiene
+  checks on fixtures outside the demo path) — none block the live demo.
+- Two things only Mailu can do: record the ~90s backup screen capture,
+  run one timed rehearsal. Not done by this session, not automatable.
+
+**Known blockers:** none blocking the live demo itself. D-1 (organizer
+answers) is superseded, not resolved, by the track switch — no longer
+the active blocker since a measured Breakthrough comparison is no longer
+being pursued.
+
+**Milestone status:** M1–M8, M10, M11, M12 DONE. M9 still IN PROGRESS —
+OI-020's two named acceptance criteria remain unmet by `verify_deep_scan.py`
+specifically, despite substantial further live-Fable evidence gathered
+both in H1 and in this stretch's production demo (see MILESTONES.md's
+post-H1 addendum).
+
+### Close Verification
+
+- Project-session state: CLOSED — verified in: this file's header above
+- Operator/WIP state: empty template — verified: yes, `tasks/wip.md`
+  reset below this block was applied
+- Acceptance criteria verified: all touched Python files `py_compile`
+  clean at every commit this stretch; `test_deep_scan_bundle.py` 11/11,
+  `test_provider_swap.py`, and `test_fixtures.py` re-run and passing
+  after every code change (not just at time of original authorship);
+  `hackathon/test_build_requirements.py` re-run repeatedly, tracked
+  36/59 → 39/74 → 45/74 → 49/74 as fixes landed; live site verified
+  working end to end via the Browser tool (both theme modes)
+- Lessons updated: yes — `KNOWLEDGE.md`: PR-review diff-against-merge-base
+  discipline and `git am` patch fragility; the B6 CLI bug and why it was
+  worse than first described; the markdown-blockquote citation-validation
+  bug (confirmed model-agnostic, not Fable-specific); Vercel SSO-protection
+  and stable-alias-vs-per-deploy-URL gotchas
+- Decisions updated: yes — DECISIONS.md #029 (track switch, with rejected
+  alternatives recorded) and #030 (cache-only public demo serving, with
+  the rate-limiter alternative recorded as deferred not abandoned)
+- Tasks/open items updated: yes — `tasks/todo.md` post-H1 section added;
+  `.agent/instructions.md` OI-022 (EXPERIMENT_CARD.md/handoff not updated
+  for track switch) and OI-023 (unexplained reviewer-manipulation flag)
+  added; OI-020/OI-021 re-verified accurate, left unchanged deliberately
+  rather than reflexively re-stamped
+- Milestones updated: yes — MILESTONES.md post-H1 addendum recording
+  further live-Fable evidence without closing OI-020 or M9
+- Structural map reconciled: yes — direct `git ls-files` comparison (111
+  files, up from 77), verified programmatically (0 of 111 unmapped, not
+  eyeballed). One real pre-existing gap found and fixed: `fixtures/`'s
+  row never mentioned `credential-disguised-report`, added mid-session
+  and never reconciled until this close. `hackathon/EXPERIMENT_CARD.md`
+  marked `stale (OI-022)` rather than left as `active`
+- Resulting diff inspected: yes — `git status`/`git diff --cached`
+  reviewed before every commit this stretch, including this close
+- Tests/checks: see "Acceptance criteria verified" above — all re-run at
+  close time, not assumed from earlier in the stretch
+- Commits created: this stretch's commits are already individually
+  pushed (see git log on `main`, `7bb5885` through `8674b5e` plus this
+  close's own commits); `git log @{u}..HEAD` checked empty after every
+  push this stretch, re-confirmed after this close commit below
+- Remote synchronization: `origin` = `14leux/repocheck-hackathon`;
+  confirmed empty `git log @{u}..HEAD` after this close's commit (see
+  command output in the session transcript)
+- External side effects verified: `.env` confirmed git-ignored and
+  absent from every diff this stretch, including this close; a real
+  API key was stored as a Vercel server-side environment variable
+  (never echoed to any tool output — piped directly from `.env` via
+  `grep`/`cut`, verified the CLI's own confirmation didn't echo the
+  value); Vercel SSO deployment-protection was deliberately disabled to
+  make the demo publicly reachable, and the public API surface was
+  redesigned (DECISIONS.md #030) specifically because of that exposure
+- Repository housekeeping: two PR review branches (`pr-1-kelly`,
+  `pr-2-evarline`) and worktrees were created and removed during PR
+  review — see worktree audit below for current state; no stray branches
+  left on `origin`
+- Remaining risks or integration work: see "Not done, carried forward"
+  above — none block the live demo; the backup recording and rehearsal
+  are the two items that must happen before judging regardless of what
+  else changes
+
+---
+
 ## Post-H1 ad-hoc follow-up (2026-09-19), continued — PR #2 reviewed and merged whole
 
 **4. Reviewed and merged `Everline Mipata`'s PR #2** (`14leux/repocheck-hackathon#2`,

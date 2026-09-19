@@ -486,3 +486,16 @@ interface on `claude-sonnet-4-5`, not via the new joint-bundle pipeline
 on Fable 5.1. M9 should be treated as still IN PROGRESS until that gap is
 explicitly closed or explicitly accepted as sufficient — this correction
 does not itself close it.
+
+**Addendum, post-H1 (2026-09-20):** further live-call evidence gathered
+building the public Vercel demo (`hackathon/BUILD_PLAN.md` M0–M6) — the
+joint-bundle pipeline now runs live in production against Fable 5.1 and
+a comparator via `api/scan.py`/`hackathon/generate_demo_cache.py`,
+including the B6 fix (deep_scan.py's skill mode now bundles the whole
+skill folder, not just SKILL.md — DECISIONS.md via KNOWLEDGE.md
+"Post-H1 -- B6"). This is real, additional, production evidence the
+joint-bundle pipeline works on Fable 5.1, but `verify_deep_scan.py`
+itself was still not updated to call it — OI-020's specific named
+acceptance criteria remain unmet as originally scoped. Not closing
+OI-020 or M9 on this addendum; recording the additional evidence
+honestly instead of letting it silently accumulate unlogged.
