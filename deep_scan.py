@@ -210,6 +210,39 @@ def _analysis_failed(reason, *, raw="", response=None, bundle=None):
     return result
 
 
+def _strip_markdown_fence(text):
+    """
+    Strip a single leading/trailing ```json ... ``` or ``` ... ``` fence
+    if the whole response is wrapped in one. This is NOT a per-model
+    repair and NOT covered by the experiment card's repair-policy
+    freeze (§9) -- it is a fixed, deterministic, symmetric text
+    transform applied identically to every response from every model,
+    regardless of which model produced it, before any parsing is
+    attempted. The distinction matters: a real repair changes what
+    counts as first-pass success and has to be logged and frozen
+    per-model; this is closer to trimming whitespace -- it changes
+    nothing about whether the underlying content was correct, only
+    whether a purely cosmetic wrapper (common instruction-following
+    behavior the system prompt's "ONLY a JSON object" line does not
+    always suppress) is allowed to cause a false ANALYSIS_FAILED.
+
+    Found by testing: a real live call returned an otherwise-correct,
+    complete EXCEEDS_SCOPE analysis wrapped in ```json fences, which
+    the unstripped parser flagged as ANALYSIS_FAILED -- inflating the
+    failure count for reasons unrelated to reasoning quality, which
+    would have corrupted any model comparison built on these numbers.
+    """
+    stripped = text.strip()
+    if not stripped.startswith("```"):
+        return text
+    lines = stripped.split("\n")
+    if len(lines) < 2:
+        return text
+    if not lines[-1].strip() == "```":
+        return text
+    return "\n".join(lines[1:-1])
+
+
 def _validate_citations(parsed, bundle):
     """Mechanical check, not a judgment call: every evidence quote must
     appear verbatim in the exact file content the model was sent, under
@@ -281,7 +314,7 @@ def run_deep_scan(provider, owner, repo, paths):
         )
 
     try:
-        parsed = json.loads(response.text)
+        parsed = json.loads(_strip_markdown_fence(response.text))
     except json.JSONDecodeError:
         return _analysis_failed(
             "model response was not valid JSON",

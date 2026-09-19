@@ -31,11 +31,14 @@ frozen comparison does not support it.
 
 | Role | Model ID | Status |
 |---|---|---|
-| Subject | `claude-fable-5-1` | Confirmed ID; org access `<FILL: smoke test passed? Y/N>` |
-| Comparator | `<FILL: organizer-approved ID>` | **Blocking.** Candidates: `claude-opus-4-8`, `claude-opus-4-7`, `claude-opus-4-6`. Datadog's S1 baseline used Opus 4.6 |
+| Subject | `claude-fable-5-1` | Smoke test passed 2026-09-19: real `model`/`stop_reason`/`usage`/`request_id` returned, no ZDR 400. Confirmed to hard-refuse at least one P0 fixture shape (`stop_details.category: "cyber"`) — see D-7 |
+| Comparator | `<FILL: organizer-approved ID>` | **Still blocking on the organizer's answer.** Informally tried `claude-opus-4-8` against the same fixture as a sanity check (not a substitute for the organizer's pick) — analyzed correctly, no refusal. Candidates: `claude-opus-4-8`, `claude-opus-4-7`, `claude-opus-4-6`. Datadog's S1 baseline used Opus 4.6 |
 
 Do not substitute a comparator because it scores better. Record the
-organizer's answer verbatim in §9.
+organizer's answer verbatim in §9. The informal Opus 4.8 check above is
+exploratory, run before the card is frozen — it does not count as a
+measured run and must be re-run under frozen conditions once the
+organizer confirms the actual comparator.
 
 ---
 
@@ -231,10 +234,11 @@ Organizer answers, verbatim:
 |---|---|---|---|
 | D-1 | Organizer answers: eligibility, comparator, evidence standard | Communicator | **BLOCKING** |
 | D-2 | Keep the raw standard-library HTTP provider, or adopt the `anthropic` SDK for the harness? Raw HTTP preserves the project's zero-dependency promise; the SDK brings typed errors and `messages.parse()`. Recommendation: keep raw HTTP, validate by hand | Developer | Open |
-| D-3 | `ANTHROPIC_API_KEY` is not set in this environment — blocks the smoke test and OI-020 | Mailu | **BLOCKING** |
-| D-4 | Fable 5.1 requires 30-day data retention; a zero-retention org gets a 400. Confirm the account is not ZDR-configured | Lead | Open |
+| D-3 | `ANTHROPIC_API_KEY` supplied via local `.env` — smoke test made | Mailu | **RESOLVED** — see §2 status, KNOWLEDGE.md |
+| D-4 | Fable 5.1 requires 30-day data retention; a zero-retention org gets a 400. Confirm the account is not ZDR-configured | Lead | **RESOLVED** — live call succeeded, no 400, org is not ZDR |
 | D-5 | Prompt v1 authored and hashed (§4) | Lead | Open |
 | D-6 | Held-out fixtures and answer key authored after freeze, kept out of the builder's context | Communicator | Open |
+| D-7 | **New finding, unplanned:** on one live comparison (RC-01-shaped credential-exfil fixture), `claude-fable-5-1` returned a hard refusal (`stop_details.category: "cyber"`) while `claude-opus-4-8` and `claude-sonnet-4-5` both analyzed it correctly. The matched legitimate counterpart did NOT trigger a Fable refusal — so this is specific to exfil-shaped content, not a bundle/prompt defect. Two calls is not a pattern; needs testing across the other P0 cases (RC-02, RC-04, RC-08) before any conclusion. If this replicates, it argues against the Breakthrough thesis as currently framed and must be disclosed, not filtered out of case selection | Lead | **OPEN — must resolve before freeze** |
 
 ---
 

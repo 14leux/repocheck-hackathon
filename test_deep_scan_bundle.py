@@ -145,6 +145,42 @@ def test_refusal_becomes_analysis_failed():
     print("PASS: a safety refusal is reported as ANALYSIS_FAILED, not as no findings")
 
 
+def test_markdown_fenced_json_still_parses():
+    """Found via a real live call: an otherwise-correct, complete
+    response wrapped in ```json fences was flagging as ANALYSIS_FAILED
+    purely on the wrapper, not the content. That would silently
+    penalize any model that habitually fences its JSON, for reasons
+    that have nothing to do with the quality of its analysis."""
+    skeleton.swap_provider(FakeFileAccessProvider(BUNDLE_FILES))
+    payload = json.loads(_clean_response().text)
+    fenced = ModelResponse(
+        "```json\n" + json.dumps(payload) + "\n```",
+        stop_reason="end_turn", model="claude-sonnet-4-5",
+    )
+    provider = ScriptedModelProvider([fenced])
+
+    result = run_deep_scan(provider, "fake", "fake", list(BUNDLE_FILES))
+
+    assert result["disposition"] == "EXCEEDS_SCOPE", result.get("failure_reason")
+    print("PASS: a response wrapped in ```json fences still parses correctly")
+
+
+def test_still_malformed_after_fence_stripping_fails():
+    """A fence-shaped wrapper around genuinely broken content must
+    still fail -- stripping the wrapper is not a license to be lenient
+    about the content inside it."""
+    skeleton.swap_provider(FakeFileAccessProvider(BUNDLE_FILES))
+    still_broken = ModelResponse(
+        "```json\nnot actually json\n```", stop_reason="end_turn", model="claude-sonnet-4-5",
+    )
+    provider = ScriptedModelProvider([still_broken])
+
+    result = run_deep_scan(provider, "fake", "fake", list(BUNDLE_FILES))
+
+    assert result["disposition"] == "ANALYSIS_FAILED"
+    print("PASS: fence-stripping does not launder genuinely malformed content into a pass")
+
+
 def test_malformed_json_becomes_analysis_failed():
     skeleton.swap_provider(FakeFileAccessProvider(BUNDLE_FILES))
     garbage = ModelResponse("not json at all", stop_reason="end_turn", model="claude-fable-5-1")
@@ -213,6 +249,8 @@ def main():
         test_joint_bundle_sees_all_files_in_one_call,
         test_truncated_response_becomes_analysis_failed_not_empty_findings,
         test_refusal_becomes_analysis_failed,
+        test_markdown_fenced_json_still_parses,
+        test_still_malformed_after_fence_stripping_fails,
         test_malformed_json_becomes_analysis_failed,
         test_fabricated_citation_fails_the_analysis,
         test_fetch_failure_becomes_coverage_gap_not_silent_omission,

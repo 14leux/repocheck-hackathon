@@ -2,7 +2,7 @@
 
 **Status:** IN PROGRESS
 
-## Hackathon session H1 — bundle collection + local .env secrets done; first-hour gate still open
+## Hackathon session H1 — first live Fable 5.1 calls: gate step 2 passed, a real bug found and fixed, a real finding against the Breakthrough thesis
 
 **Working copy:** `D:\Projects\repocheck-hackathon` (clone of the main
 project at commit `667e669`). `origin` = `14leux/repocheck-hackathon`
@@ -11,62 +11,67 @@ project at commit `667e669`). `origin` = `14leux/repocheck-hackathon`
 **Goal:** Execute `HACKATHON_CLAUDE_CODE_HANDOFF.md` — Breakthrough
 track, bounded skill authority review, demonstrated on Claude Fable 5.1.
 
-**Current step:** the top implementation blind spot from
-`hackathon/BLIND_SPOTS.md` (C-1: one-file-at-a-time API calls, unable to
-answer any cross-file case) is fixed. New `bundle.py` builds one bounded,
-delimited, deterministic multi-file bundle; `interfaces.py` gained
-`ModelResponse`/`analyze_detailed()` so `stop_reason`/`usage`/`model` are
-no longer thrown away; `anthropic_provider.py`'s `max_tokens` went
-1024→16000 and got a real timeout; `deep_scan.py`'s `run_deep_scan()`
-makes one joint request instead of one per file, validates every
-citation against the exact bundle bytes sent, and maps malformed
-JSON/refusal/truncation to `ANALYSIS_FAILED` instead of an empty
-findings list. Verified offline with a new 7-case suite
-(`test_deep_scan_bundle.py`, scripted provider, zero network calls) —
-all pass. `test_provider_swap.py` re-run unmodified, still passes.
+**Current step:** Mailu pasted real `ANTHROPIC_API_KEY`/`GITHUB_TOKEN`
+into the local `.env` this session. Hard-first-hour-gate step 2 (one
+successful Fable 5.1 call) is done for real: `model`, `stop_reason`,
+`usage`, `request_id` all came back correctly, no ZDR 400 (card D-4
+resolved). Ran the new joint-bundle pipeline against three live models
+on the same RC-01-shaped fixture (credential-disguised-as-report) —
+found and fixed one real bug, and surfaced one real finding:
 
-**Not yet done:** `hackathon/EXPERIMENT_CARD.md` v0.1 is still DRAFT —
-NOT FROZEN (six open decisions in its §10; D-1 organizer answers and D-3
-no `ANTHROPIC_API_KEY` are BLOCKING). No prompt file authored yet, no
-live API call made, no fixtures built beyond D-2c (which
-`hackathon/BLIND_SPOTS.md` section A found real defects in — untouched
-by this session's fix, since those are fixture-authoring issues, not
-collection-pipeline issues). No UI. The hard first-hour gate is still
-open — everything above is plumbing verified against a fake, not a
-demonstrated live capability.
+- **Bug (fixed):** the first live multi-file call (Sonnet 4.5) returned
+  `ANALYSIS_FAILED` on a response that was actually complete and
+  correct, wrapped in ` ```json ` fences the parser didn't strip.
+  `deep_scan.py` now strips a single leading/trailing fence
+  (`_strip_markdown_fence()`) before parsing — documented as a fixed,
+  symmetric transform, not a per-model repair under the card's §9
+  freeze. Re-ran live after the fix: parses correctly now. Two new
+  offline tests added (9/9 pass total).
+- **Finding (open, card D-7):** on the same fixture, `claude-fable-5-1`
+  hard-refused (`stop_details.category: "cyber"`) while
+  `claude-opus-4-8` and `claude-sonnet-4-5` both analyzed it correctly.
+  The matched legitimate counterpart did NOT trigger a Fable refusal,
+  so this is specific to exfil-shaped content, not the bundle/prompt
+  design. Two calls is not a pattern — this cuts against the
+  Breakthrough thesis as currently framed and needs testing across the
+  other P0 cases before any conclusion. Full detail: KNOWLEDGE.md.
 
-**Secrets setup (this session):** the Bash/PowerShell tools spawn a
-fresh, non-persistent shell per call, so a shell-level `export` set in
-one tool call never reaches the next — a real limitation of this
-harness, not something fixable in the shell itself. Added `envfile.py`
-(stdlib-only, no new dependency) so `ANTHROPIC_API_KEY`/`GITHUB_TOKEN`
-load from a local, git-ignored `.env` file at the moment each provider
-reads them, bypassing shell persistence entirely. `.env.example`
-(tracked) documents the two variables; `.env` (real file, confirmed
-git-ignored via `git check-ignore -v .env`, absent from `git status`)
-exists locally with both keys still blank, waiting for Mailu to paste
-real values in directly.
+**Not yet done:** `hackathon/EXPERIMENT_CARD.md` is still DRAFT — NOT
+FROZEN. D-3 and D-4 are now resolved; D-1 (organizer answers) is still
+BLOCKING; D-7 (the refusal finding above) is newly open and must
+resolve before freeze. No prompt file authored yet (§4). No fixtures
+built beyond D-2c (which `hackathon/BLIND_SPOTS.md` §A found real
+defects in — untouched, those are fixture-authoring issues, not
+collection-pipeline issues). No UI. `verify_deep_scan.py` itself
+(Sonnet 4.5 default, single-file interface) was run and passed both
+checks, but that is a different, older code path than the joint-bundle
+pipeline exercised above — OI-020's "M9 verified" claim should attach
+to the joint-bundle results, not just verify_deep_scan.py's pass.
 
-**Next concrete step:** (1) once `.env` has a real `ANTHROPIC_API_KEY`,
-run `verify_deep_scan.py` for real — the two live-call acceptance
-criteria (injection resistance, a real detection win) are still
-unverified, offline tests don't substitute for them; (2) author
+**Next concrete step:** (1) decide with Mailu how to handle the D-7
+refusal finding — test it against the remaining P0 fixtures (RC-02,
+RC-04, RC-08) before concluding anything, and decide whether/how it
+changes the Breakthrough pitch; (2) author
 `hackathon/prompts/authority_review_v1.txt` and hash it into card §4;
 (3) get organizer answers into card §9; (4) re-cut D-2c with neutral
-naming and out-of-bundle permission, then build its harmful twin D-2.
+naming and out-of-bundle permission, then build its harmful twin D-2 —
+now informed by exactly what content shape triggers a Fable refusal, so
+D-2 can be authored to avoid an accidental refusal that isn't the point
+of that test.
 
 **Known blockers:**
-- `.env`'s `ANTHROPIC_API_KEY` is still blank — blocks the Fable smoke
-  test and OI-020's live deep-scan verification (unchanged; the offline
-  suite added this session does not resolve this blocker, it only
-  proves the surrounding plumbing is correct given some response).
 - Organizer comparator and eligibility rules are still unconfirmed
-  (carried over from main-project session 5).
+  (carried over from main-project session 5) — card D-1, BLOCKING.
+- `ANTHROPIC_API_KEY`/`GITHUB_TOKEN` blockers (card D-3) are resolved —
+  both load from `.env` and both work live.
 
 **Milestone status (inherited, unverified in this clone):** M1–M8, M10,
-M11, M12 DONE; M9 IN PROGRESS pending OI-020 (status text refreshed this
-session in `.agent/instructions.md`'s Open Items table — not closed);
-OI-021 deferred.
+M11, M12 DONE; M9 still marked IN PROGRESS — the two live-call
+acceptance criteria (injection resistance, a real detection win) passed
+via `verify_deep_scan.py`, but that ran the single-file interface on
+Sonnet 4.5, not Fable 5.1 through the joint-bundle pipeline this session
+actually exercised live. Not calling M9 DONE until that gap is closed
+or explicitly accepted as sufficient. OI-021 deferred.
 
 ---
 
