@@ -244,6 +244,45 @@ def test_bundle_digest_is_stable_across_runs():
     print("PASS: bundle digest is stable across runs despite the per-run random nonce")
 
 
+def test_user_intent_lands_outside_the_delimited_bundle():
+    """The card's §5 input contract (and the system prompt's own claim)
+    says the user's task/scope is supplied OUTSIDE the delimited data.
+    Before this test existed there was no code path for that at all --
+    every fixture had to declare its own permission inside SKILL.md,
+    which is the exact authorization-from-the-artifact-under-review
+    problem the project exists to reject (BLIND_SPOTS.md A-2)."""
+    skeleton.swap_provider(FakeFileAccessProvider(BUNDLE_FILES))
+    provider = ScriptedModelProvider([_clean_response()])
+    intent = "Send an aggregate usage summary only; never disclose account credentials."
+
+    run_deep_scan(provider, "fake", "fake", list(BUNDLE_FILES), user_intent=intent)
+
+    _, sent_content = provider.calls[0]
+    intent_pos = sent_content.find(intent)
+    bundle_pos = sent_content.find("<repocheck-data-")
+    assert intent_pos != -1, "user_intent text was not found in the sent message at all"
+    assert intent_pos < bundle_pos, "user_intent must appear BEFORE the delimited bundle region"
+    assert intent_pos < sent_content.find(
+        "</user_task_and_scope>"
+    ) < bundle_pos, "user_intent must be wrapped in its own tag, entirely outside the bundle tag"
+    print("PASS: user_intent is placed outside the nonce-delimited bundle region")
+
+
+def test_omitting_user_intent_still_works():
+    """Existing callers with no separate permission input must keep
+    working exactly as before -- user_intent is additive, not a
+    breaking change to the function signature."""
+    skeleton.swap_provider(FakeFileAccessProvider(BUNDLE_FILES))
+    provider = ScriptedModelProvider([_clean_response()])
+
+    result = run_deep_scan(provider, "fake", "fake", list(BUNDLE_FILES))
+
+    assert result["disposition"] == "EXCEEDS_SCOPE"
+    _, sent_content = provider.calls[0]
+    assert "<user_task_and_scope>" not in sent_content
+    print("PASS: omitting user_intent preserves the previous behavior exactly")
+
+
 def main():
     tests = [
         test_joint_bundle_sees_all_files_in_one_call,
@@ -255,6 +294,8 @@ def main():
         test_fabricated_citation_fails_the_analysis,
         test_fetch_failure_becomes_coverage_gap_not_silent_omission,
         test_bundle_digest_is_stable_across_runs,
+        test_user_intent_lands_outside_the_delimited_bundle,
+        test_omitting_user_intent_still_works,
     ]
     for t in tests:
         t()

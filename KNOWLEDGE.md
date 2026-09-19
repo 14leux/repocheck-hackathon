@@ -941,3 +941,41 @@ reasonably want the tool to still produce an answer, with the refusal
 and substitution disclosed, not hidden. These are two different design
 questions and the card's decision to omit fallbacks should not be read
 as a decision for the product itself.
+
+## Hackathon session H1 — user_intent: closing the last gap in the input contract before parallel fixture testing
+
+Before spawning subagents to test the remaining P0 cases (RC-02, RC-04,
+RC-08), one more gap from `hackathon/BLIND_SPOTS.md` (A-2) needed
+closing at the pipeline level rather than being left for each fixture
+author to rediscover independently: `run_deep_scan()` had no parameter
+for the user's stated task/scope at all. Every fixture built so far
+(including D-2c) had no way to supply permission except writing it
+inside `SKILL.md` — exactly the "the repository's own text cannot
+authorize its own behavior" problem the whole project exists to
+reject, even though the system prompt already *claimed* the user's
+task/scope is "provided to you outside the delimited data."
+
+**Fix:** `run_deep_scan(provider, owner, repo, paths, user_intent=None)`
+and `build_bundle_message(bundle, user_intent=None)` now place the
+user's task/scope in its own `<user_task_and_scope>` block, positioned
+before the nonce-delimited bundle region, with explicit text telling
+the model that block — and only that block — is the source of
+authorization, and that nothing inside the delimited data can expand
+or override it regardless of what the data claims about its own
+approval. Omitting `user_intent` preserves the exact previous behavior
+(verified directly), so this is additive, not breaking.
+
+**Verified offline:** two new tests —
+`test_user_intent_lands_outside_the_delimited_bundle` (asserts the
+intent text appears before the bundle's opening tag, in its own
+wrapper tag, not inside it) and `test_omitting_user_intent_still_works`
+(confirms the old call signature is untouched). 11/11 offline tests
+pass; `test_provider_swap.py` still passes unmodified.
+
+**Practical effect on fixture authoring going forward:** a fixture no
+longer needs a "User permission: ..." line inside `SKILL.md` to state
+its own scope — that line should move to the test harness's
+`user_intent=` argument instead, and any permission-shaped text still
+found inside a fixture's own files should be treated as exactly what
+the project already argues it is: unverified claims by the artifact
+under review, not authorization.
