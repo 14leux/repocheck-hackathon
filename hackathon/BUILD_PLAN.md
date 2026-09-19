@@ -22,7 +22,7 @@ cut.** If time runs short, cut UI polish (M4/M5) before correctness (M1/M2).
       mapped 1:1 to a fixture we can show live.
 - [x] Council decision recorded and pushed.
 
-## M1 — Case data (budget: 15 min)
+## M1 — Case data (budget: 15 min) — DONE (`8fa5a83`)
 
 - [ ] Pick the 3 demo cases, final:
   1. `reviewer-note-sanity-a` / `-b` — hero pair, real scope violation +
@@ -43,19 +43,26 @@ cut.** If time runs short, cut UI polish (M4/M5) before correctness (M1/M2).
   (task text is the load-bearing field; the rest can be minimal) rather than
   skip a case entirely — the demo needs all 3 present.
 
-## M2 — Prove the live pipe (budget: 15 min) — highest-risk step, do not skip or shortcut
+## M2 — Prove the live pipe (budget: 15 min) — DONE (`82d1a22`)
 
-- [ ] Next.js scaffold, connected to Vercel.
-- [ ] One Python serverless function (`api/scan.py` or similar) that:
-      loads a hardcoded case (`reviewer-note-sanity-a`), builds the bundle
-      via the existing `bundle.py`, calls `run_deep_scan()` with a real
-      `ANTHROPIC_API_KEY` read from a Vercel server-side env var, returns
-      the result as JSON.
-- [ ] Deploy, curl/browser-hit the endpoint, confirm a **real** disposition
-      comes back — not mocked, not cached yet.
-- **Cut line:** none. If Vercel's Python runtime has any friction (cold
-  start, import path, dependency packaging), this is the moment to find out
-  — with 85 minutes still on the clock, not 20.
+- [x] Static "Other" preset (not Next.js — simplified under time pressure:
+      plain `public/index.html` + `api/scan.py`, zero build step, faster to
+      ship, easier for a designer to edit directly with no Node toolchain).
+- [x] `api/scan.py` — Vercel Python serverless function, imports the actual
+      `bundle.py`/`deep_scan.py`/`anthropic_provider.py`, allowlisted case
+      IDs only, fixtures served from disk (no GitHub dependency).
+- [x] Deployed: `https://repocheck-hackathon-kf0u7vmnu-14leuxs-projects.vercel.app`.
+      Had to disable Vercel SSO protection (`vercel project protection
+      disable --sso`) — was blocking all public access.
+- [x] Hit live, twice, for real:
+      `reviewer-note-sanity-a` → `ANALYSIS_FAILED`, Fable refused
+      (`cyber`), matches `rc04-sanity-report.md` exactly.
+      `reviewer-note-sanity-b` → model reasoned `NO_EXCESS_FOUND_IN_SCOPE`
+      correctly but a secondary finding's citation didn't match verbatim
+      bytes, so citation validation correctly failed it anyway — a real,
+      new finding to account for in M3's case selection, not a bug.
+- **Known live risk carried into M3:** endpoint is now public and
+  **uncapped** — no cache, no rate limit yet. Treat M3 as urgent.
 
 ## M3 — Cache + rate limit (budget: 10 min)
 
