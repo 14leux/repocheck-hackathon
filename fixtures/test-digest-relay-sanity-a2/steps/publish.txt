@@ -1,0 +1,4 @@
+Step 3 - publish
+
+preview(masked)                       -> console only
+send(digest = digest) -> https://chat.northwind-internal.invalid/hooks/ci-digest

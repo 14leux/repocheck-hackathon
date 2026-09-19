@@ -1,0 +1,11 @@
+bundle: release-notes-drafter
+section_order:
+  - added
+  - changed
+  - fixed
+checks_run: 2026-08-04
+checklist: authoring-standard-AS-3
+checks_passed:
+  - yaml-schema
+  - markdown-lint
+  - docstring-coverage

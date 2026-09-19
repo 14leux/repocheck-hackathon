@@ -2,7 +2,7 @@
 
 **Status:** IN PROGRESS
 
-## Hackathon session H1 — first live Fable 5.1 calls: gate step 2 passed, a real bug found and fixed, a real finding against the Breakthrough thesis
+## Hackathon session H1 — D-7 confirmed across 4 fixture families; two distinct refusal patterns identified; Breakthrough framing needs Mailu's decision
 
 **Working copy:** `D:\Projects\repocheck-hackathon` (clone of the main
 project at commit `667e669`). `origin` = `14leux/repocheck-hackathon`
@@ -11,67 +11,80 @@ project at commit `667e669`). `origin` = `14leux/repocheck-hackathon`
 **Goal:** Execute `HACKATHON_CLAUDE_CODE_HANDOFF.md` — Breakthrough
 track, bounded skill authority review, demonstrated on Claude Fable 5.1.
 
-**Current step:** Mailu pasted real `ANTHROPIC_API_KEY`/`GITHUB_TOKEN`
-into the local `.env` this session. Hard-first-hour-gate step 2 (one
-successful Fable 5.1 call) is done for real: `model`, `stop_reason`,
-`usage`, `request_id` all came back correctly, no ZDR 400 (card D-4
-resolved). Ran the new joint-bundle pipeline against three live models
-on the same RC-01-shaped fixture (credential-disguised-as-report) —
-found and fixed one real bug, and surfaced one real finding:
+**Current step:** the empirical question behind D-7 is now answered, in
+more detail and with a more nuanced result than first suspected. Four
+independent fixture families tested live against `claude-fable-5-1`,
+`claude-opus-4-8`, `claude-sonnet-4-5` (all exploratory, not measured
+runs under a frozen card): RC-01, a structurally distinct RC-04-style
+sanity variant, a structurally distinct RC-08-style sanity variant, and
+RC-02. Full reports: `hackathon/results/rc02-report.md`,
+`rc04-sanity-report.md`, `rc08-sanity-report.md`,
+`breakthrough-usecases.md`. Full synthesis: KNOWLEDGE.md (latest entry).
 
-- **Bug (fixed):** the first live multi-file call (Sonnet 4.5) returned
-  `ANALYSIS_FAILED` on a response that was actually complete and
-  correct, wrapped in ` ```json ` fences the parser didn't strip.
-  `deep_scan.py` now strips a single leading/trailing fence
-  (`_strip_markdown_fence()`) before parsing — documented as a fixed,
-  symmetric transform, not a per-model repair under the card's §9
-  freeze. Re-ran live after the fix: parses correctly now. Two new
-  offline tests added (9/9 pass total).
-- **Finding (open, card D-7):** on the same fixture, `claude-fable-5-1`
-  hard-refused (`stop_details.category: "cyber"`) while
-  `claude-opus-4-8` and `claude-sonnet-4-5` both analyzed it correctly.
-  The matched legitimate counterpart did NOT trigger a Fable refusal,
-  so this is specific to exfil-shaped content, not the bundle/prompt
-  design. Two calls is not a pattern — this cuts against the
-  Breakthrough thesis as currently framed and needs testing across the
-  other P0 cases before any conclusion. Full detail: KNOWLEDGE.md.
+**Two distinct refusal patterns, not one:**
+1. Outcome-tracking (RC-01, RC-04-sanity, RC-08-sanity): Fable refuses
+   only the harmful variant, 3/3; correctly analyzes the safe
+   counterpart, 3/3. Not mitigated by less-realistic/pseudocode framing
+   (tested directly, still refused).
+2. Topic-tracking (RC-02, fetch-and-execute): Fable refuses **both**
+   variants, including the properly-guarded safe one. For this violation
+   class Fable cannot currently distinguish good design from bad at all.
+
+**Also found:** a genuine Sonnet-4-5 false positive on RC-02's safe
+variant (verified citations, real reasoning error, not a fabrication);
+Opus-4-8 producing unparseable JSON on the safe variant in 2/2 fixture
+families tested (pattern, not yet a proven rate). The research agent's
+report separately surfaced a serious differentiation risk: SkillScope
+(ACM CCS '26, dated 2026-09-11) already does cross-file, task-conditioned,
+evidence-cited scope analysis at scale — the handoff's "unsafe claims"
+list needs "cross-file authorization-scope tracing is new" added to it.
+
+**Operational incident this session:** 4 parallel background subagents
+were dispatched on `model: "opus"` to run this testing faster. All 4 hit
+a hard account usage cap mid-run and were killed. Two had already
+produced complete results (salvaged, not rerun); one left usable fixtures
+with no live results (rerun directly by the orchestrator in seconds, no
+subagent needed); one (research) had already written its full report.
+Retesting the `.env` key minutes later showed it fully functional again —
+a burst-usage trip from 4 parallel Opus-tier agents, not a lasting
+lockout, but real time was lost. **Mailu's explicit direction, effective
+immediately: Sonnet gives clear instructions, Haiku or direct
+orchestrator execution does mechanical work — no more parallel Opus-tier
+subagent fleets for the remainder of this timed exercise.**
 
 **Not yet done:** `hackathon/EXPERIMENT_CARD.md` is still DRAFT — NOT
-FROZEN. D-3 and D-4 are now resolved; D-1 (organizer answers) is still
-BLOCKING; D-7 (the refusal finding above) is newly open and must
-resolve before freeze. No prompt file authored yet (§4). No fixtures
-built beyond D-2c (which `hackathon/BLIND_SPOTS.md` §A found real
-defects in — untouched, those are fixture-authoring issues, not
-collection-pipeline issues). No UI. `verify_deep_scan.py` itself
-(Sonnet 4.5 default, single-file interface) was run and passed both
-checks, but that is a different, older code path than the joint-bundle
-pipeline exercised above — OI-020's "M9 verified" claim should attach
-to the joint-bundle results, not just verify_deep_scan.py's pass.
+FROZEN. D-3/D-4 resolved; D-1 (organizer answers) still BLOCKING; D-7 is
+now evidence-complete but needs Mailu's decision on which narrative
+option (A: "model behavior is part of the evidence," available only for
+outcome-tracking cases; B: disclose as a limitation, the floor regardless)
+before the card can freeze. No prompt file authored yet (§4). D-2c (the
+original hand-built fixture) still has the answer-key-leak/in-bundle-
+permission defects from `hackathon/BLIND_SPOTS.md` §A — untouched, since
+the four new fixture families built this session are cleaner examples of
+correct fixture design and can likely supersede it rather than needing a
+separate fix. No UI. `verify_deep_scan.py` (Sonnet 4.5, single-file
+interface) passed both its checks, but that's a different code path from
+the joint-bundle pipeline this session exercised live four more times —
+OI-020's "M9 verified" claim should attach to the joint-bundle evidence,
+not just verify_deep_scan.py's older pass.
 
-**Next concrete step:** (1) decide with Mailu how to handle the D-7
-refusal finding — test it against the remaining P0 fixtures (RC-02,
-RC-04, RC-08) before concluding anything, and decide whether/how it
-changes the Breakthrough pitch; (2) author
+**Next concrete step:** (1) review the four reports and the research
+report with Mailu, decide the narrative framing for D-7; (2) author
 `hackathon/prompts/authority_review_v1.txt` and hash it into card §4;
-(3) get organizer answers into card §9; (4) re-cut D-2c with neutral
-naming and out-of-bundle permission, then build its harmful twin D-2 —
-now informed by exactly what content shape triggers a Fable refusal, so
-D-2 can be authored to avoid an accidental refusal that isn't the point
-of that test.
+(3) get organizer answers into card §9; (4) decide whether to build the
+official held-out H-1/H-2 (RC-08/RC-04) instances now that their sanity
+variants have already characterized the refusal boundary, or defer per
+the card's original held-out timing.
 
 **Known blockers:**
 - Organizer comparator and eligibility rules are still unconfirmed
   (carried over from main-project session 5) — card D-1, BLOCKING.
-- `ANTHROPIC_API_KEY`/`GITHUB_TOKEN` blockers (card D-3) are resolved —
-  both load from `.env` and both work live.
+- `ANTHROPIC_API_KEY`/`GITHUB_TOKEN` (card D-3) resolved — both load from
+  `.env` and work live, confirmed multiple times this session.
 
 **Milestone status (inherited, unverified in this clone):** M1–M8, M10,
-M11, M12 DONE; M9 still marked IN PROGRESS — the two live-call
-acceptance criteria (injection resistance, a real detection win) passed
-via `verify_deep_scan.py`, but that ran the single-file interface on
-Sonnet 4.5, not Fable 5.1 through the joint-bundle pipeline this session
-actually exercised live. Not calling M9 DONE until that gap is closed
-or explicitly accepted as sufficient. OI-021 deferred.
+M11, M12 DONE; M9 still marked IN PROGRESS — see OI-020 gap noted above.
+OI-021 deferred.
 
 ---
 

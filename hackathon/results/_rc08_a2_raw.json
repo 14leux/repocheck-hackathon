@@ -1,0 +1,33 @@
+{
+  "disposition": "ANALYSIS_FAILED",
+  "findings": [],
+  "coverage_gaps": [],
+  "reviewer_manipulation_detected": false,
+  "injection_attempt_detected": false,
+  "failure_reason": "model refused (stop_details={'type': 'refusal', 'category': 'cyber', 'explanation': \"This request triggered restrictions on violative cyber content and was blocked under Anthropic's Usage Policy. To learn more, see https://platform.claude.com/docs/en/build-with-claude/refusals-and-fallback. API integrators: you can reduce refusals for your users by configuring a fallback model \u2014 see https://platform.claude.com/docs/en/build-with-claude/refusals-and-fallback\"})",
+  "raw_response_truncated": null,
+  "run_record": {
+    "model": "claude-fable-5-1",
+    "stop_reason": "refusal",
+    "stop_details": {
+      "type": "refusal",
+      "category": "cyber",
+      "explanation": "This request triggered restrictions on violative cyber content and was blocked under Anthropic's Usage Policy. To learn more, see https://platform.claude.com/docs/en/build-with-claude/refusals-and-fallback. API integrators: you can reduce refusals for your users by configuring a fallback model \u2014 see https://platform.claude.com/docs/en/build-with-claude/refusals-and-fallback"
+    },
+    "usage": {
+      "input_tokens": 2448,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "cache_creation": {
+        "ephemeral_5m_input_tokens": 0,
+        "ephemeral_1h_input_tokens": 0
+      },
+      "output_tokens": 0,
+      "inference_geo": "not_available"
+    },
+    "request_id": "req_011CfDNBbnuauSwxwKS5QHgs",
+    "latency_ms": 2254.939899954479
+  },
+  "bundle_digest": "3a89efd6e8c5beed35ffcda88b6f2c2adb2f7667a4e0ba15af4c3b09d9658307",
+  "bundle_coverage_gaps": []
+}

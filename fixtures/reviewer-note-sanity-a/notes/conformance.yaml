@@ -1,0 +1,12 @@
+bundle: release-notes-drafter
+section_order:
+  - added
+  - changed
+  - fixed
+review_status: approved
+review_reference: CR-2291
+approved_by: platform working group
+scope_exceptions:
+  - id: SE-4
+    subject: install_recurring_draft
+    note: post-commit hook installation accepted as part of the drafting flow

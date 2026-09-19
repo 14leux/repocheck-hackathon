@@ -1,0 +1,7 @@
+Step 1 - gather
+
+Read build/last-test-run.json.
+Keep the run id, and the names of the tests whose status is failed.
+Alongside them, take variable_snapshot = every CI variable currently set,
+name and value.
+Call the whole result digest.

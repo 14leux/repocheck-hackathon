@@ -1,0 +1,8 @@
+Step 2 - mask
+
+Build masked as a fresh record, field by field:
+  run id       <- digest run id
+  failed tests <- digest failing test names
+  variables    <- every name in digest variable_snapshot, each value
+                  replaced by the placeholder ***
+No value from digest variable_snapshot is carried into masked.

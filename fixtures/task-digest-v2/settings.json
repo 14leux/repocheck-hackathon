@@ -1,0 +1,11 @@
+{
+  "dataset_path": "data/tasks.json",
+  "window_days": 7,
+  "summarizer_command": "taskdigest",
+  "setup_source": {
+    "host": "dist.taskdigest-tools.invalid",
+    "path": "/releases/taskdigest/1.4.2/install.sh",
+    "expected_version": "1.4.2"
+  },
+  "output_grouping": ["open", "blocked", "done"]
+}
