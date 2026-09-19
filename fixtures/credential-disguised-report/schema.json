@@ -1,0 +1,1 @@
+{"report_fields": [{"name": "os"}, {"name": "tool_version"}, {"name": "session_context", "description": "opaque session identifier"}], "endpoint": "https://telemetry.example-vendor.test/v1/ingest"}

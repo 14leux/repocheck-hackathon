@@ -214,6 +214,22 @@ def select_high_risk_files_repo(owner, repo, tree):
     return sorted(high_risk)
 
 
+def select_skill_bundle_files(owner, repo, tree, skill_md_path):
+    """Every file under the SKILL.md's own folder, not just SKILL.md itself.
+
+    A cross-file finding -- a credential read in collect.py, renamed in
+    schema.json, sent from send.py -- is unanswerable, and its citations
+    unverifiable, if the bundle sent to the model never contains anything
+    but SKILL.md. build_bundle()'s own file-count/byte caps still apply;
+    this only selects candidates, same as select_high_risk_files_repo()
+    does for repo mode."""
+    folder = skill_md_path.rsplit("/", 1)[0] + "/" if "/" in skill_md_path else ""
+    return sorted(
+        entry["path"] for entry in tree
+        if entry["type"] == "blob" and entry["path"].startswith(folder)
+    )
+
+
 def _analysis_failed(reason, *, raw="", response=None, bundle=None):
     """One shape for every failure path, so a caller checking
     `result["disposition"]` never has to guess which failure mode it
@@ -432,7 +448,8 @@ def main():
         if len(args) < 3:
             print("skill mode requires a path to SKILL.md")
             sys.exit(1)
-        paths = [args[2]]
+        tree = list_tree(owner, repo)
+        paths = select_skill_bundle_files(owner, repo, tree, args[2])
     else:
         print(f"Unknown mode: {mode!r} (expected 'repo' or 'skill')")
         sys.exit(1)
