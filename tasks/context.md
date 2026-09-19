@@ -2,7 +2,7 @@
 
 **Status:** IN PROGRESS
 
-## Hackathon session H1 — bundle collection fixed and verified offline; first-hour gate still open
+## Hackathon session H1 — Fable 5.1 model selection + output_config added, verified against live docs; first-hour gate still open
 
 **Working copy:** `D:\Projects\repocheck-hackathon` (clone of the main
 project at commit `667e669`). `origin` = `14leux/repocheck-hackathon`
@@ -25,23 +25,50 @@ findings list. Verified offline with a new 7-case suite
 (`test_deep_scan_bundle.py`, scripted provider, zero network calls) —
 all pass. `test_provider_swap.py` re-run unmodified, still passes.
 
+**This session's addition:** two more BLIND_SPOTS.md §D items closed
+against the live Anthropic docs (fetched directly, not from training
+knowledge — this model's cutoff predates Fable 5.1's Sep 2026 release):
+`anthropic_provider.py` now has an explicit `FABLE_MODEL` constant and
+sends `output_config: {"effort": "high"}`, verified against the docs'
+own request examples for `claude-fable-5-1`; `deep_scan.py` gained a
+`--model` flag (default `claude-fable-5-1`) and prints which model it's
+about to call, so the subject model is never silently inherited from
+the provider's generic default. Deliberately did NOT add
+`output_config.format` (schema-constrained output) — a doc-compatibility
+check for this exact model came back self-contradictory, and a wrong
+guess there risks a live 400 at demo time. Flagged as an open question,
+not shipped. Re-verified `test_deep_scan_bundle.py` (7/7) and
+`test_provider_swap.py` unmodified after the change; both pass.
+
+Also this session: a `fixtures/conditional-setup/` test-3 fixture was
+added and opened as a PR against `14leux/repocheck-hackathon` via a
+personal fork (`kelly-leon/repocheck-hackathon`), after discovering the
+`kelly` branch's push permissions were denied on the shared repo. The
+rebase onto the fork also surfaced that `main` had moved 4 commits ahead
+of what this session's boot read (the team's own bundle-collection fix,
+`test 4` fixture, blind-spot review, and a draft experiment card) — now
+reconciled.
+
 **Not yet done:** `hackathon/EXPERIMENT_CARD.md` v0.1 is still DRAFT —
 NOT FROZEN (six open decisions in its §10; D-1 organizer answers and D-3
 no `ANTHROPIC_API_KEY` are BLOCKING). No prompt file authored yet, no
 live API call made, no fixtures built beyond D-2c (which
 `hackathon/BLIND_SPOTS.md` section A found real defects in — untouched
 by this session's fix, since those are fixture-authoring issues, not
-collection-pipeline issues). No UI. The hard first-hour gate is still
-open — everything above is plumbing verified against a fake, not a
-demonstrated live capability.
+collection-pipeline issues). `output_config.format` compatibility with
+Fable 5.1 unresolved (see above). No UI. The hard first-hour gate is
+still open — everything above is plumbing verified against a fake, not
+a demonstrated live capability.
 
 **Next concrete step:** (1) get `ANTHROPIC_API_KEY` into this
 environment and run `verify_deep_scan.py` for real — the two live-call
 acceptance criteria (injection resistance, a real detection win) are
-still unverified, offline tests don't substitute for them; (2) author
-`hackathon/prompts/authority_review_v1.txt` and hash it into card §4;
-(3) get organizer answers into card §9; (4) re-cut D-2c with neutral
-naming and out-of-bundle permission, then build its harmful twin D-2.
+still unverified, offline tests don't substitute for them; while a real
+key is available, also settle `output_config.format` compatibility with
+one real call; (2) author `hackathon/prompts/authority_review_v1.txt`
+and hash it into card §4; (3) get organizer answers into card §9; (4)
+re-cut D-2c with neutral naming and out-of-bundle permission, then build
+its harmful twin D-2.
 
 **Known blockers:**
 - `ANTHROPIC_API_KEY` is not set in this environment — blocks the Fable

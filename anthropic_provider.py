@@ -24,6 +24,15 @@ ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages"
 ANTHROPIC_API_VERSION = "2023-06-01"
 DEFAULT_MODEL = "claude-sonnet-4-5"
 
+# The hackathon subject model (EXPERIMENT_CARD.md #2), verified against
+# https://platform.claude.com/docs/en/models/fable-5-1/overview: model ID
+# `claude-fable-5-1`, 1M context, 128K max output, adaptive thinking
+# always on, default effort "high". Kept separate from DEFAULT_MODEL --
+# a caller comparing against an organizer-approved comparator model must
+# choose explicitly (BLIND_SPOTS.md #D-1), never inherit this module's
+# generic default silently.
+FABLE_MODEL = "claude-fable-5-1"
+
 # A joint multi-file bundle asks for a structured answer with per-finding
 # evidence, and 1024 tokens does not hold one. Worse, the old cap failed
 # in the most dangerous direction: the reply truncated, the JSON came
@@ -68,20 +77,37 @@ class AnthropicModelProvider(ModelProvider):
             )
 
         # Deliberately absent, each for a reason -- do not "fix" these by
-        # adding them back:
-        #   temperature / top_p / top_k -- removed on the Fable 5.1 family;
-        #     sending any of them returns a 400. Reproducibility comes from
-        #     frozen inputs and recorded repetitions, not from temperature 0.
-        #   thinking -- always on for that family; "disabled" and
-        #     budget_tokens both 400. Depth is set via output_config.effort.
+        # adding them back (verified against
+        # https://platform.claude.com/docs/en/models/fable-5-1/whats-new-fable-5-1):
+        #   temperature / top_p / top_k -- non-default values return a 400
+        #     on this family. Reproducibility comes from frozen inputs and
+        #     recorded repetitions, not from temperature 0.
+        #   thinking -- adaptive and always on for this family; sending
+        #     {"type": "enabled", budget_tokens: ...} or {"type": "disabled"}
+        #     both 400. Depth is set via output_config.effort below instead.
+        #   tool_choice -- "any"/"tool" (forced tool use) 400 on this family;
+        #     moot here since this call sends no tools at all.
         #   fallbacks -- a safety refusal silently answered by a *different*
         #     model would be recorded as this model's result, which quietly
         #     destroys any model comparison built on these runs.
+        #
+        # output_config.effort is sent explicitly even though "high" is
+        # already this family's default -- explicit beats implicit for a
+        # run record the experiment card has to cite. output_config.format
+        # (schema-constrained structured output) is deliberately NOT sent:
+        # its docs list claude-fable-5-1 as a supported model, but a
+        # web-doc fetch during this session returned self-contradictory
+        # results on the exact ZDR/Covered-Model exclusion wording, and a
+        # wrong guess here 400s live rather than degrading gracefully.
+        # Confirm with a real smoke test (EXPERIMENT_CARD.md D-3) before
+        # adding it -- the current prose-instructed JSON output already
+        # passes deep_scan.py's citation validation in the offline suite.
         body = json.dumps({
             "model": self.model,
             "max_tokens": self.max_tokens,
             "system": system_prompt,
             "messages": [{"role": "user", "content": untrusted_content}],
+            "output_config": {"effort": "high"},
         }).encode()
 
         req = urllib.request.Request(
