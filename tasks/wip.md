@@ -4,22 +4,31 @@ Project session goal: Hackathon (Breakthrough track) — bounded skill
 authority review on Claude Fable 5.1, per HACKATHON_CLAUDE_CODE_HANDOFF.md
 Working tree: D:\Projects\repocheck-hackathon (origin = 14leux/repocheck-hackathon)
 Active operator: Claude Code (Opus 5, 1M)
-Operator state: awaiting user confirmation of hackathon session goal
+Operator state: experiment card drafted; awaiting organizer answers + API key
 Last updated: 2026-09-19
 
-Current step: Clone created, pushed, and marked as the hackathon working copy.
-Next concrete step: Hard first-hour gate — organizer answers (eligibility,
-  approved comparator, evidence standard), ANTHROPIC_API_KEY set, one
-  successful Fable 5.1 call, then the frozen one-page experiment card.
-Done so far: git clone of 14leux/repocheck at 667e669; origin renamed to
-  upstream; new public repo 14leux/repocheck-hackathon created and pushed;
-  CLAUDE.md banner marking this as the clone; context.md header rewritten
-  for hackathon session H1.
-Tried and failed: nothing yet.
-Dirty or partial files: CLAUDE.md, tasks/context.md, tasks/wip.md (this
-  file) — modified in the clone, not yet committed.
-Verification already performed: `git log @{u}..HEAD` empty and working tree
-  clean immediately after the initial push; remotes confirmed via
-  `git remote -v`; ANTHROPIC_API_KEY confirmed absent;
-  anthropic_provider.py:24 confirmed still defaulting to claude-sonnet-4-5
-  with no timeout; deep_scan.py malformed-JSON path unchanged.
+Current step: hackathon/EXPERIMENT_CARD.md v0.1 written, marked DRAFT — NOT
+  FROZEN, with every unresolved input left as an explicit <FILL> rather than
+  a guess. Six open decisions in its §10; D-1 (organizer answers) and D-3
+  (no ANTHROPIC_API_KEY) are BLOCKING.
+Next concrete step: author hackathon/prompts/authority_review_v1.txt and
+  paste its SHA-256 into card §4 — the card cannot freeze without it. Then
+  the four development fixtures (D-1, D-1c, D-2, D-2c) under
+  hackathon/fixtures/, inert text only.
+Done so far: clone stood up, pushed, marked as the hackathon working copy;
+  experiment card v0.1 (claim, models, frozen request settings, prompt
+  contract, model-visible input contract, case splits, repetitions/budget/
+  stop time, 4x0-2 scoring rubric plus separate critical-failure counters,
+  per-run record, open decisions, sign-off block); KNOWLEDGE.md entry on the
+  Fable 5.1 API constraints that shaped the card.
+Tried and failed: nothing substantive. One bash heredoc write of the card
+  died on an unmatched quote and created no file; rewritten with the Write
+  tool, no partial state left behind.
+Dirty or partial files: none — committed and pushed.
+Verification already performed: Fable 5.1 constraints (no sampling params,
+  thinking always on, forced tool_choice rejected, 30-day retention
+  required, structured output via output_config.format) read from the
+  bundled claude-api reference, not recalled. anthropic_provider.py:24
+  confirmed still defaulting to claude-sonnet-4-5 with no timeout;
+  deep_scan.py malformed-JSON path unchanged. ANTHROPIC_API_KEY confirmed
+  absent from this environment.

@@ -2,7 +2,7 @@
 
 **Status:** IN PROGRESS
 
-## Hackathon session H1 — clone stood up, awaiting first-hour gate
+## Hackathon session H1 — experiment card drafted, first-hour gate still open
 
 **Working copy:** `D:\Projects\repocheck-hackathon` (clone of the main
 project at commit `667e669`). `origin` = `14leux/repocheck-hackathon`
@@ -11,14 +11,17 @@ project at commit `667e669`). `origin` = `14leux/repocheck-hackathon`
 **Goal:** Execute `HACKATHON_CLAUDE_CODE_HANDOFF.md` — Breakthrough
 track, bounded skill authority review, demonstrated on Claude Fable 5.1.
 
-**Current step:** Hard first-hour gate, not yet passed. Nothing is built
-yet; no UI work until the gate clears.
+**Current step:** `hackathon/EXPERIMENT_CARD.md` v0.1 drafted and marked
+DRAFT — NOT FROZEN. Six open decisions (D-1..D-6) are listed in its §10;
+D-1 (organizer answers) and D-3 (no `ANTHROPIC_API_KEY`) are marked
+BLOCKING. No code written, no UI, no measured run — the hard first-hour
+gate is still open.
 
-**Next concrete step:** (1) get organizer answers — existing-project
-eligibility, approved comparator model, accepted evidence for a
-"new in Fable 5.1" claim; (2) set `ANTHROPIC_API_KEY` (not present in
-this environment) and make one successful Fable 5.1 call; (3) write the
-one-page frozen experiment card.
+**Next concrete step:** (1) author `hackathon/prompts/authority_review_v1.txt`
+and paste its SHA-256 into card §4 (card cannot freeze without it);
+(2) get organizer answers into card §9 verbatim; (3) set
+`ANTHROPIC_API_KEY` and make one Fable 5.1 call; (4) build the four
+development fixtures D-1/D-1c/D-2/D-2c.
 
 **Known blockers:**
 - `ANTHROPIC_API_KEY` is not set in this environment — blocks both the

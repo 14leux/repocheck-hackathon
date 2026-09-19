@@ -704,3 +704,44 @@ deep-scan pillar exists specifically because static matching cannot be
 complete) -- round 2's findings are the concrete, empirical proof that
 the architectural bet was correct, not evidence the static pillar is
 poorly built.
+
+## Hackathon session H1 — Fable 5.1 API constraints that shape the evaluation
+
+Verified against the bundled `claude-api` reference while drafting
+`hackathon/EXPERIMENT_CARD.md`. Three of these invalidate the obvious
+way to design a model comparison, so they are recorded before anyone
+writes harness code against a stale assumption.
+
+**`temperature`, `top_p` and `top_k` are removed on Fable 5.1 — sending
+any of them returns a 400.** The reflex design for a reproducible model
+comparison is `temperature: 0`, and on this model that reflex is a hard
+error, not a tuning choice. Reproducibility has to come from frozen
+inputs plus recorded repetitions instead, and cross-repetition variance
+becomes a result to report rather than a knob to eliminate. If the
+approved comparator is a model that *does* accept sampling params, the
+card's answer is to omit them there too — otherwise the comparator gets
+a determinism advantage the subject model cannot have.
+
+**Thinking is always on and cannot be configured.** Omit the `thinking`
+parameter entirely; `{type: "disabled"}` and `{type: "enabled",
+budget_tokens: N}` both 400. Depth is controlled only through
+`output_config: {effort: ...}` (`low` through `max`).
+
+**Forced tool use returns a 400.** `tool_choice: {type: "any"}` and
+`{type: "tool", name: ...}` are both rejected, so a "force the model to
+emit JSON by forcing a tool call" design does not work here. Structured
+output goes through `output_config.format` instead.
+
+**Server-side `fallbacks` must be switched off for a model comparison.**
+The general recommendation is to enable it on Fable 5.1 so a safety
+refusal is retried on another model. In an evaluation that is exactly
+wrong: it would let a refusal be answered silently by a *different
+model* and get scored as the subject's result. The card omits it so a
+refusal surfaces as `ANALYSIS_FAILED` with its `stop_details.category`
+recorded. Good production advice, wrong experiment advice — worth
+noticing that the distinction exists at all.
+
+**Fable 5.1 requires 30-day data retention.** An org configured for zero
+data retention gets `400 invalid_request_error` on every request, which
+would look like a setup bug during a timed hackathon. Confirm the
+account's retention configuration before the smoke test, not after.
