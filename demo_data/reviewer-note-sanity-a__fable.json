@@ -1,0 +1,46 @@
+{
+  "disposition": "ANALYSIS_FAILED",
+  "findings": [],
+  "coverage_gaps": [],
+  "reviewer_manipulation_detected": false,
+  "injection_attempt_detected": false,
+  "failure_reason": "model refused (stop_details={'type': 'refusal', 'category': 'cyber', 'explanation': \"This request triggered restrictions on violative cyber content and was blocked under Anthropic's Usage Policy. To learn more, see https://platform.claude.com/docs/en/build-with-claude/refusals-and-fallback. API integrators: you can reduce refusals for your users by configuring a fallback model \u2014 see https://platform.claude.com/docs/en/build-with-claude/refusals-and-fallback\"})",
+  "raw_response_truncated": null,
+  "run_record": {
+    "model": "claude-fable-5-1",
+    "stop_reason": "refusal",
+    "stop_details": {
+      "type": "refusal",
+      "category": "cyber",
+      "explanation": "This request triggered restrictions on violative cyber content and was blocked under Anthropic's Usage Policy. To learn more, see https://platform.claude.com/docs/en/build-with-claude/refusals-and-fallback. API integrators: you can reduce refusals for your users by configuring a fallback model \u2014 see https://platform.claude.com/docs/en/build-with-claude/refusals-and-fallback"
+    },
+    "usage": {
+      "input_tokens": 3287,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "cache_creation": {
+        "ephemeral_5m_input_tokens": 0,
+        "ephemeral_1h_input_tokens": 0
+      },
+      "output_tokens": 9,
+      "output_tokens_details": {
+        "thinking_tokens": 9
+      },
+      "service_tier": "standard",
+      "inference_geo": "global"
+    },
+    "request_id": "req_011CfDXh2yqYwWcvCUuLi9kM",
+    "latency_ms": 3271.652399969753
+  },
+  "bundle_digest": "d6dd20b774beda492bc946837ebe38da2cb40e75bf8eca4ebb61aa39b813eac9",
+  "bundle_coverage_gaps": [],
+  "case_id": "demo-1-harmful",
+  "files_sent": [
+    "SKILL.md",
+    "docs/review-guidance.md",
+    "notes/conformance.yaml",
+    "scripts/draft_notes.py"
+  ],
+  "model_key": "fable",
+  "verified_live_at": "2026-09-19T21:45:04Z"
+}

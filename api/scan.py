@@ -10,9 +10,13 @@ Deliberately narrow attack surface for a public endpoint:
   - Fixture files are served from disk (this repo, deployed alongside the
     function), never fetched from GitHub or any other network source --
     no SSRF surface, no dependency on GITHUB_TOKEN.
-  - The only outbound network call this function makes is the one
-    Anthropic Messages API call per request, using ANTHROPIC_API_KEY from
-    a Vercel server-side environment variable -- never sent to the client.
+  - The public handler (do_GET) never makes an outbound network call at
+    all -- it only ever serves a pre-generated, committed result from
+    demo_data/. run_case_live() is the one function that calls the
+    Anthropic API for real, using ANTHROPIC_API_KEY from a Vercel
+    server-side env var; it's invoked only by
+    hackathon/generate_demo_cache.py, never by a public request. This
+    removes the uncapped-cost risk entirely rather than rate-limiting it.
 """
 
 import json
@@ -30,6 +34,7 @@ from interfaces import FileAccessProvider  # noqa: E402
 
 FIXTURES = os.path.join(ROOT, "fixtures")
 CASES_DIR = os.path.join(ROOT, "hackathon", "cases")
+CACHE_DIR = os.path.join(ROOT, "demo_data")
 
 # Allowlist only -- the whole point of "fixed demo cases" (see BUILD_PLAN.md
 # M1/M2). `case` query values that aren't a key here are rejected before
@@ -39,6 +44,13 @@ ALLOWED_CASES = {
     "reviewer-note-sanity-b": "reviewer-note-sanity-b",
     "credential-disguised-report": "credential-disguised-report",
     "task-digest-v1": "task-digest-v1",
+}
+
+# Model keys the site is allowed to ask for -- never a raw model ID from the
+# querystring, so nobody can point this endpoint at an arbitrary model.
+MODEL_IDS = {
+    "fable": FABLE_MODEL,
+    "comparator": "claude-opus-4-8",
 }
 
 
@@ -91,10 +103,15 @@ def render_intent(case):
     return "\n".join(lines)
 
 
-def run_case(case_id):
-    if case_id not in ALLOWED_CASES:
-        return {"error": f"unknown case {case_id!r}", "allowed": sorted(ALLOWED_CASES)}, 400
+def cache_path(case_id, model_key):
+    return os.path.join(CACHE_DIR, f"{case_id}__{model_key}.json")
 
+
+def run_case_live(case_id, model_key):
+    """The one function that makes a real Anthropic call. Called by the
+    offline cache-generation script (hackathon/generate_demo_cache.py),
+    never directly reachable from a public request -- see module docstring
+    on why the public handler only ever serves the committed cache."""
     fixture_dir = ALLOWED_CASES[case_id]
     root = os.path.join(FIXTURES, fixture_dir)
     with open(os.path.join(CASES_DIR, f"{fixture_dir}.json"), encoding="utf-8") as fh:
@@ -105,14 +122,36 @@ def run_case(case_id):
     paths = sorted(e["path"] for e in tree if e["type"] == "blob")
     user_intent = render_intent(case)
 
-    try:
-        provider = AnthropicModelProvider(model=FABLE_MODEL)
-        result = run_deep_scan(provider, "demo", fixture_dir, paths, user_intent=user_intent)
-    except MissingApiKeyError as e:
-        return {"error": str(e)}, 500
-
+    provider = AnthropicModelProvider(model=MODEL_IDS[model_key])
+    result = run_deep_scan(provider, "demo", fixture_dir, paths, user_intent=user_intent)
     result["case_id"] = case.get("case_id", case_id)
     result["files_sent"] = paths
+    result["model_key"] = model_key
+    return result
+
+
+def run_case(case_id, model_key):
+    """Public path: cache-only, no live Anthropic call ever fires from a
+    request to this handler. Eliminates the uncapped-cost risk entirely
+    instead of rate-limiting it -- the live "run it again" button from
+    BUILD_PLAN.md M3 is explicitly a stretch goal, not required for a
+    truthful "verified live" claim (the cached result IS a real run,
+    timestamped, not a mock)."""
+    if case_id not in ALLOWED_CASES:
+        return {"error": f"unknown case {case_id!r}", "allowed": sorted(ALLOWED_CASES)}, 400
+    if model_key not in MODEL_IDS:
+        return {"error": f"unknown model {model_key!r}", "allowed": sorted(MODEL_IDS)}, 400
+
+    path = cache_path(case_id, model_key)
+    if not os.path.exists(path):
+        return {
+            "error": "no cached result for this case/model combination yet",
+            "case_id": case_id, "model_key": model_key,
+        }, 404
+
+    with open(path, encoding="utf-8") as fh:
+        result = json.load(fh)
+    result["cached"] = True
     return result, 200
 
 
@@ -122,11 +161,12 @@ class handler(BaseHTTPRequestHandler):
 
         query = parse_qs(urlparse(self.path).query)
         case_id = (query.get("case") or [""])[0]
+        model_key = (query.get("model") or ["fable"])[0]
 
         if not case_id:
             body, status = {"error": "missing ?case=<id>", "allowed": sorted(ALLOWED_CASES)}, 400
         else:
-            body, status = run_case(case_id)
+            body, status = run_case(case_id, model_key)
 
         payload = json.dumps(body).encode("utf-8")
         self.send_response(status)
