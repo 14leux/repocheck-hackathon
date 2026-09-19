@@ -95,7 +95,10 @@ decision. 14 P0 acceptance-test items remain open beyond B6 (see
 `hackathon/test_build_requirements.py` output for the current list — B3
 `output_config.format`, B8 frozen-prompt-file, B11 card freeze, F6 case-spec
 files under `hackathon/cases/` are the most structurally significant).
-PR #1 not closed. Fixture directories `fixtures/legit-permission-gated-setup`
+PR #1 closed on GitHub (2026-09-19, at Mailu's request) — model-selection
+piece already landed in `7bb5885`, fixture and checkpoint-diff pieces left
+unmerged per the review comment on the PR. Fixture directories
+`fixtures/legit-permission-gated-setup`
 and the RC-02-pattern duplicates remain untouched (out of scope for this
 stretch). No formal session-close reconcile (KNOWLEDGE.md, DECISIONS.md,
 MILESTONES.md, codebase_map.md) was performed for this stretch — do that at
