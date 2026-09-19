@@ -1,6 +1,47 @@
 # tasks/context.md
 
-**Status:** CLOSED
+**Status:** IN PROGRESS
+
+## Hackathon session H1 — clone stood up, awaiting first-hour gate
+
+**Working copy:** `D:\Projects\repocheck-hackathon` (clone of the main
+project at commit `667e669`). `origin` = `14leux/repocheck-hackathon`
+(public), `upstream` = `14leux/repocheck`. Main project untouched.
+
+**Goal:** Execute `HACKATHON_CLAUDE_CODE_HANDOFF.md` — Breakthrough
+track, bounded skill authority review, demonstrated on Claude Fable 5.1.
+
+**Current step:** Hard first-hour gate, not yet passed. Nothing is built
+yet; no UI work until the gate clears.
+
+**Next concrete step:** (1) get organizer answers — existing-project
+eligibility, approved comparator model, accepted evidence for a
+"new in Fable 5.1" claim; (2) set `ANTHROPIC_API_KEY` (not present in
+this environment) and make one successful Fable 5.1 call; (3) write the
+one-page frozen experiment card.
+
+**Known blockers:**
+- `ANTHROPIC_API_KEY` is not set in this environment — blocks both the
+  Fable smoke test and OI-020's live deep-scan verification.
+- Organizer comparator and eligibility rules are still unconfirmed
+  (carried over from main-project session 5).
+
+**Confirmed from the handoff's risk list (verified in this clone, not
+yet fixed):**
+- `anthropic_provider.py:24` still defaults to `claude-sonnet-4-5` —
+  needs an explicit Fable 5.1 selection path.
+- `anthropic_provider.py` has no request timeout at all.
+- `deep_scan.py` still turns malformed JSON into an empty findings list
+  (must become `ANALYSIS_FAILED`, never "no findings").
+
+**Milestone status (inherited, unverified in this clone):** M1–M8, M10,
+M11, M12 DONE; M9 IN PROGRESS pending OI-020; OI-021 deferred. Hackathon
+work adds no milestones to this table yet.
+
+---
+
+*History below is inherited from the main project up to commit `667e669`.*
+
 
 ## Session 5 — Hackathon handoff and intentional close
 

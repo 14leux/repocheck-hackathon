@@ -1,4 +1,16 @@
-# RepoCheck — Agent Entry Point
+# RepoCheck (Hackathon Clone) — Agent Entry Point
+
+> **This folder is the hackathon working copy, not the main project.**
+> `origin` = `github.com/14leux/repocheck-hackathon` (public, created
+> 19 Sep 2026). `upstream` = `github.com/14leux/repocheck` (the live
+> project at `D:\Projects\repocheck`). Push hackathon work to `origin`
+> only. Nothing here flows back to `upstream` unless deliberately
+> cherry-picked after the hackathon.
+>
+> Hackathon brief: `HACKATHON_CLAUDE_CODE_HANDOFF.md` (Breakthrough
+> track, skill authority review, Claude Fable 5.1). Read it alongside
+> the boot sequence below.
+
 
 Read `.agent/instructions.md` in full before doing anything else this
 session. It defines the boot sequence, the Open Items table, and points
