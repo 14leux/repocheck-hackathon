@@ -2,7 +2,7 @@
 
 **Status:** IN PROGRESS
 
-## Hackathon session H1 — experiment card drafted, first-hour gate still open
+## Hackathon session H1 — bundle collection fixed and verified offline; first-hour gate still open
 
 **Working copy:** `D:\Projects\repocheck-hackathon` (clone of the main
 project at commit `667e669`). `origin` = `14leux/repocheck-hackathon`
@@ -11,35 +11,50 @@ project at commit `667e669`). `origin` = `14leux/repocheck-hackathon`
 **Goal:** Execute `HACKATHON_CLAUDE_CODE_HANDOFF.md` — Breakthrough
 track, bounded skill authority review, demonstrated on Claude Fable 5.1.
 
-**Current step:** `hackathon/EXPERIMENT_CARD.md` v0.1 drafted and marked
-DRAFT — NOT FROZEN. Six open decisions (D-1..D-6) are listed in its §10;
-D-1 (organizer answers) and D-3 (no `ANTHROPIC_API_KEY`) are marked
-BLOCKING. No code written, no UI, no measured run — the hard first-hour
-gate is still open.
+**Current step:** the top implementation blind spot from
+`hackathon/BLIND_SPOTS.md` (C-1: one-file-at-a-time API calls, unable to
+answer any cross-file case) is fixed. New `bundle.py` builds one bounded,
+delimited, deterministic multi-file bundle; `interfaces.py` gained
+`ModelResponse`/`analyze_detailed()` so `stop_reason`/`usage`/`model` are
+no longer thrown away; `anthropic_provider.py`'s `max_tokens` went
+1024→16000 and got a real timeout; `deep_scan.py`'s `run_deep_scan()`
+makes one joint request instead of one per file, validates every
+citation against the exact bundle bytes sent, and maps malformed
+JSON/refusal/truncation to `ANALYSIS_FAILED` instead of an empty
+findings list. Verified offline with a new 7-case suite
+(`test_deep_scan_bundle.py`, scripted provider, zero network calls) —
+all pass. `test_provider_swap.py` re-run unmodified, still passes.
 
-**Next concrete step:** (1) author `hackathon/prompts/authority_review_v1.txt`
-and paste its SHA-256 into card §4 (card cannot freeze without it);
-(2) get organizer answers into card §9 verbatim; (3) set
-`ANTHROPIC_API_KEY` and make one Fable 5.1 call; (4) build the four
-development fixtures D-1/D-1c/D-2/D-2c.
+**Not yet done:** `hackathon/EXPERIMENT_CARD.md` v0.1 is still DRAFT —
+NOT FROZEN (six open decisions in its §10; D-1 organizer answers and D-3
+no `ANTHROPIC_API_KEY` are BLOCKING). No prompt file authored yet, no
+live API call made, no fixtures built beyond D-2c (which
+`hackathon/BLIND_SPOTS.md` section A found real defects in — untouched
+by this session's fix, since those are fixture-authoring issues, not
+collection-pipeline issues). No UI. The hard first-hour gate is still
+open — everything above is plumbing verified against a fake, not a
+demonstrated live capability.
+
+**Next concrete step:** (1) get `ANTHROPIC_API_KEY` into this
+environment and run `verify_deep_scan.py` for real — the two live-call
+acceptance criteria (injection resistance, a real detection win) are
+still unverified, offline tests don't substitute for them; (2) author
+`hackathon/prompts/authority_review_v1.txt` and hash it into card §4;
+(3) get organizer answers into card §9; (4) re-cut D-2c with neutral
+naming and out-of-bundle permission, then build its harmful twin D-2.
 
 **Known blockers:**
-- `ANTHROPIC_API_KEY` is not set in this environment — blocks both the
-  Fable smoke test and OI-020's live deep-scan verification.
+- `ANTHROPIC_API_KEY` is not set in this environment — blocks the Fable
+  smoke test and OI-020's live deep-scan verification (unchanged; the
+  offline suite added this session does not resolve this blocker, it
+  only proves the surrounding plumbing is correct given some response).
 - Organizer comparator and eligibility rules are still unconfirmed
   (carried over from main-project session 5).
 
-**Confirmed from the handoff's risk list (verified in this clone, not
-yet fixed):**
-- `anthropic_provider.py:24` still defaults to `claude-sonnet-4-5` —
-  needs an explicit Fable 5.1 selection path.
-- `anthropic_provider.py` has no request timeout at all.
-- `deep_scan.py` still turns malformed JSON into an empty findings list
-  (must become `ANALYSIS_FAILED`, never "no findings").
-
 **Milestone status (inherited, unverified in this clone):** M1–M8, M10,
-M11, M12 DONE; M9 IN PROGRESS pending OI-020; OI-021 deferred. Hackathon
-work adds no milestones to this table yet.
+M11, M12 DONE; M9 IN PROGRESS pending OI-020 (status text refreshed this
+session in `.agent/instructions.md`'s Open Items table — not closed);
+OI-021 deferred.
 
 ---
 

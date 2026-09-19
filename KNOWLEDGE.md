@@ -745,3 +745,83 @@ noticing that the distinction exists at all.
 data retention gets `400 invalid_request_error` on every request, which
 would look like a setup bug during a timed hackathon. Confirm the
 account's retention configuration before the smoke test, not after.
+
+## Hackathon session H1 — bundle collection fixed, verified offline
+
+Addressed the top implementation blind spot from the earlier review
+(`hackathon/BLIND_SPOTS.md` C-1/C-2/C-3): `deep_scan.py` called the
+model once per file, discarding each answer into a per-path dict, so no
+cross-file question was ever answerable — and every priority hackathon
+case (RC-01, RC-02, RC-08) is cross-file by construction.
+
+**What changed, concretely:**
+
+- **New `bundle.py`.** Collects many files into one bounded, delimited,
+  deterministic request: caps on file count/per-file bytes/total bytes
+  (anything past a cap becomes a recorded coverage gap, never a silent
+  drop); a per-bundle random nonce in the delimiter tag names, so
+  content cannot forge a boundary by guessing a fixed tag; a snapshot
+  digest computed over a canonical manifest (sorted paths + per-file
+  sha256), stable across runs despite the random nonce — verified
+  directly (`test_bundle_digest_is_stable_across_runs`).
+- **`interfaces.py`: added `ModelResponse` and `ModelProvider.analyze_detailed()`.**
+  The old `analyze()` returned a bare joined string, so a truncated
+  reply, a safety refusal, and a normal answer were indistinguishable —
+  all three "some text". `analyze_detailed()` returns `stop_reason`,
+  `stop_details`, `usage`, `model`, `request_id`, `latency_ms`.
+  `analyze()` itself is preserved unchanged (now implemented as
+  `analyze_detailed(...).text`) so `verify_deep_scan.py`'s existing
+  string-based checks keep working without modification — confirmed by
+  mocking `analyze_detailed` and checking `analyze()` still returns a
+  plain string.
+- **`anthropic_provider.py`:** `max_tokens` 1024 → 16000 (a structured,
+  cited, multi-file answer does not fit in 1024, and Fable's always-on
+  thinking counts against the same ceiling); added a real request
+  timeout (`urllib` has no default — it inherits the socket default of
+  `None`, i.e. can hang forever); `analyze_detailed()` now reads
+  `stop_reason`/`usage`/`model`/the `request-id` header straight off the
+  real response instead of discarding them. Sampling params, `thinking`,
+  and `fallbacks` remain deliberately absent, each commented with why
+  (see the Fable 5.1 constraints entry above) so a later "fix" doesn't
+  reintroduce a 400 or quietly launder a refusal through a different
+  model.
+- **`deep_scan.py`:** `run_deep_scan()` now builds one bundle across all
+  selected paths and makes exactly one request, verified directly
+  (`test_joint_bundle_sees_all_files_in_one_call` asserts
+  `len(provider.calls) == 1` and that every path's content is present
+  in the single sent message). Malformed JSON, a refusal, a truncated
+  response, an invalid/missing disposition, and a citation that doesn't
+  match the exact bundle bytes sent all route through one
+  `_analysis_failed()` helper → `disposition: "ANALYSIS_FAILED"` — never
+  an empty findings list. The old "prompt-injection-safe by
+  construction" docstring claim was softened to defense-in-depth,
+  matching the handoff's explicit correction.
+- **Citation validation is mechanical.** `_validate_citations()` checks
+  every finding's `evidence[].quote` appears verbatim in the exact file
+  content included in the bundle, under the claimed path. A model that
+  gets the disposition right but cites text that was never in the input
+  now fails the whole analysis rather than scoring a pass with a
+  fabricated citation — this was a named requirement in the experiment
+  card, not an incidental nice-to-have.
+
+**Verified how:** `test_deep_scan_bundle.py`, a new offline suite
+(7 cases, `ScriptedModelProvider` standing in for the real one, zero
+network calls, no API key) — one call for a 3-file bundle; truncation,
+refusal, malformed JSON, and a bad citation each produce
+`ANALYSIS_FAILED`; a fetch failure becomes a coverage gap, not a silent
+omission; the digest is stable across two independent runs. All 7 pass.
+`test_provider_swap.py` (the existing M7 acceptance test) re-run
+unmodified and still passes — the `FileAccessProvider` contract was not
+touched. `verify_deep_scan.py` itself was not re-run — it still needs a
+real `ANTHROPIC_API_KEY`, which remains absent from this environment
+(OI-020, unchanged).
+
+**Still open after this fix:** the live-call verification (OI-020) — an
+offline scripted test proves the plumbing is correct given a certain
+response shape, it does not prove Fable 5.1's *actual* responses fit
+that shape, resist injection, or catch real cases the static pass
+misses. Also open: the fixture defects in `hackathon/BLIND_SPOTS.md`
+section A (D-2c's answer-key leak, in-bundle permission claim,
+structural mismatch with its future harmful twin) — none of those were
+touched in this fix, since they're fixture-authoring issues, not
+collection-pipeline issues.

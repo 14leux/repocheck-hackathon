@@ -70,6 +70,52 @@ class FileAccessProvider(ABC):
         return None
 
 
+class ModelResponse:
+    """
+    One model call's result, including the parts that decide whether the
+    text can be trusted at all.
+
+    `text` alone is not enough. A response truncated at the token cap
+    and a response that finished normally are the same string shape, and
+    so is a safety refusal -- all three arrive as "some text". A caller
+    that only looks at `text` reads a cut-off answer as a complete one,
+    which for a security tool means reading "I did not finish" as "I
+    found nothing". `stop_reason` is what separates them.
+
+    `usage`, `model` and `request_id` are here because the experiment
+    card requires them in every run record; a result that cannot say
+    which model produced it, at what cost, is not evidence.
+    """
+
+    def __init__(self, text, *, stop_reason=None, stop_details=None,
+                 usage=None, model=None, request_id=None, latency_ms=None):
+        self.text = text
+        self.stop_reason = stop_reason
+        self.stop_details = stop_details
+        self.usage = usage or {}
+        self.model = model
+        self.request_id = request_id
+        self.latency_ms = latency_ms
+
+    @property
+    def truncated(self):
+        return self.stop_reason == "max_tokens"
+
+    @property
+    def refused(self):
+        return self.stop_reason == "refusal"
+
+    def run_record(self):
+        return {
+            "model": self.model,
+            "stop_reason": self.stop_reason,
+            "stop_details": self.stop_details,
+            "usage": self.usage,
+            "request_id": self.request_id,
+            "latency_ms": self.latency_ms,
+        }
+
+
 class ModelProvider(ABC):
     @abstractmethod
     def analyze(self, system_prompt, untrusted_content):
@@ -79,5 +125,24 @@ class ModelProvider(ABC):
         as instructions (DECISIONS.md #016, non-negotiable) -- this
         method's job is to call the model, not to enforce that
         delimiting itself.
+
+        Returns the response text only. Kept unchanged so existing
+        callers and any other implementation keep working; new code that
+        needs to tell a truncated answer from a complete one should call
+        analyze_detailed() instead.
         """
         raise NotImplementedError
+
+    def analyze_detailed(self, system_prompt, untrusted_content):
+        """
+        The same call, returning a ModelResponse instead of a bare
+        string.
+
+        The default implementation wraps analyze(), so a provider that
+        has not been updated still works -- it just reports every field
+        except the text as unknown. An implementation that can see the
+        real stop reason and usage should override this. A
+        `stop_reason` of None means "this provider cannot tell you",
+        which a caller must treat as unverified rather than as success.
+        """
+        return ModelResponse(self.analyze(system_prompt, untrusted_content))
