@@ -1,5 +1,9 @@
 {
   "outputDirectory": "public",
+  "rewrites": [
+    { "source": "/demo", "destination": "/api/demo_page" },
+    { "source": "/how-it-works", "destination": "/api/how_it_works_page" }
+  ],
   "functions": {
     "api/scan.py": {
       "maxDuration": 60
