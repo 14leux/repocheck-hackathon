@@ -161,6 +161,22 @@
   .deep-box textarea{min-height:68px; resize:vertical;}
   .deep-box button{border:0; border-radius:7px; padding:8px 12px; margin-top:10px; background:var(--accent); color:#fff; font:inherit; font-weight:700; cursor:pointer;}
   .deep-note{font-size:12px !important; color:var(--ink-soft);}
+  .demo-picker{display:flex; flex-wrap:wrap; gap:8px; margin:0 0 20px;}
+  .demo-picker button{border:1px solid var(--border); border-radius:999px; padding:8px 12px;
+    background:var(--card); color:var(--ink); font:inherit; font-size:13px; cursor:pointer;}
+  .demo-picker button:hover,.demo-picker button:focus-visible{border-color:var(--accent); color:var(--accent);}
+  .progress{display:none; list-style:none; padding:0; margin:10px 0 0; gap:5px; flex-wrap:wrap;}
+  .progress.visible{display:flex;}
+  .progress li{font-size:11px; color:var(--ink-soft); border:1px solid var(--border); border-radius:999px; padding:3px 7px;}
+  .progress li.active{color:var(--accent); border-color:var(--accent); background:var(--accent-soft);}
+  .progress li.done{color:var(--ink-soft); text-decoration:line-through;}
+  .run-evidence{margin-top:8px; border-top:1px solid var(--border); padding-top:6px;}
+  .run-evidence summary{font-size:12px; color:var(--accent); cursor:pointer;}
+  .run-evidence .quote{margin-top:6px;}
+  .local-fallback{background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:10px; margin-top:12px;}
+  .local-fallback summary{font-size:13px; font-weight:700; cursor:pointer;}
+  .local-fallback p{font-size:13px; margin:8px 0;}
+  .local-fallback code{display:block; overflow:auto; padding:8px; border-radius:6px; background:var(--card); font-size:11px;}
   @media (max-width:560px){ .checker-row{flex-direction:column;} .checker button{padding:11px 16px;} }
 </style>
 </head>
@@ -181,6 +197,10 @@
         <button type="button" data-example="https://github.com/14leux/repocheck-hackathon/blob/main/skills/repocheck/SKILL.md">skill URL</button>
       </div>
       <div class="checker-status" id="checker-status" role="status" aria-live="polite"></div>
+      <ol class="progress" id="scan-progress" aria-label="Scan progress">
+        <li data-step="validate">Validate target</li><li data-step="snapshot">Read snapshot</li>
+        <li data-step="checks">Run checks</li><li data-step="report">Build report</li>
+      </ol>
     </form>
     <div class="live-report" id="live-report" aria-live="polite"></div>
     <div class="damage">
@@ -208,8 +228,13 @@
   </section>
 
   <section>
-    <h2>See it live</h2>
+    <h2>Verified example reports</h2>
     <p class="lede">Three verified example reports from real, timestamped model runs. They are cached so the page loads quickly and does not create an unbounded public API cost.</p>
+    <div class="demo-picker" aria-label="Jump to a verified example">
+      <button type="button" data-demo="case-credential">Credential in a report field</button>
+      <button type="button" data-demo="case-reviewer">Manipulated reviewer</button>
+      <button type="button" data-demo="case-digest">Conditional install</button>
+    </div>
 
     <div class="case" id="case-reviewer">
       <h3>The manipulated reviewer</h3>
@@ -274,6 +299,7 @@ function renderStaticReport(report) {
   findings.forEach(f => {
     html += `<div class="report-item"><strong>${escapeHtml(f.severity || "review")} · ${escapeHtml(f.category || "finding")}</strong><p>${escapeHtml(f.detail || f.what || "Review this finding.")}</p>`;
     if (f.source) html += `<div class="report-meta">Source: ${escapeHtml(f.source)}</div>`;
+    html += `<details class="run-evidence"><summary>Why this matters</summary><p>${escapeHtml(f.why || f.what || "Review the source evidence before trusting this target.")}</p>${f.attack_example ? `<p>${escapeHtml(f.attack_example)}</p>` : ""}</details>`;
     html += `</div>`;
   });
   html += `</div>`;
@@ -283,7 +309,21 @@ function renderStaticReport(report) {
     caveats.forEach(c => html += `<div class="report-item">${escapeHtml(c.detail || c.category || "Not fully verified")}</div>`);
     html += `</div>`;
   }
+  const localTarget = report.mode === "skill" && report.path ? `${report.repo} ${report.path}` : (report.repo || "owner/repo");
+  html += `<details class="local-fallback"><summary>Prefer to keep source on your machine?</summary><p>Run the same static check locally. Nothing is uploaded to RepoCheck.</p><code>python3 repocheck.py ${escapeHtml(localTarget)}</code></details>`;
   return html;
+}
+
+function setProgress(step) {
+  const progress = document.getElementById("scan-progress");
+  progress.classList.add("visible");
+  const order = ["validate", "snapshot", "checks", "report"];
+  const index = order.indexOf(step);
+  progress.querySelectorAll("li").forEach(item => {
+    const itemIndex = order.indexOf(item.dataset.step);
+    item.classList.toggle("active", itemIndex === index);
+    item.classList.toggle("done", itemIndex < index || step === "done");
+  });
 }
 
 document.getElementById("checker-form").addEventListener("submit", async event => {
@@ -293,18 +333,28 @@ document.getElementById("checker-form").addEventListener("submit", async event =
   const status = document.getElementById("checker-status");
   const report = document.getElementById("live-report");
   button.disabled = true;
-  status.textContent = "Reading the public GitHub snapshot…";
+  setProgress("validate");
+  status.textContent = "Validating the GitHub target…";
   report.classList.remove("visible");
   try {
+    await new Promise(resolve => setTimeout(resolve, 120));
+    setProgress("snapshot");
+    status.textContent = "Reading the public GitHub snapshot…";
     const response = await fetch("/api/check", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ target: input.value }) });
     const data = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(data.error || "The scan could not start.");
+    setProgress("checks");
+    status.textContent = "Running dependency, code, and link checks…";
+    await new Promise(resolve => setTimeout(resolve, 120));
+    setProgress("report");
     report.innerHTML = renderStaticReport(data) + `<div class="report-section"><div class="deep-box"><strong>Optional deep scope review</strong><p class="deep-note">Use your own Anthropic API key. We will show the selected files and an estimate before any model call. Your key is used once and not stored.</p><label for="deep-task">What should this target do?</label><textarea id="deep-task" placeholder="Summarize weekly commits without sending credentials."></textarea><label for="deep-data">Allowed data (one item per line)</label><textarea id="deep-data" placeholder="Repository files needed for the summary"></textarea><label for="deep-recipients">Allowed recipients (one item per line)</label><textarea id="deep-recipients" placeholder="none"></textarea><label for="deep-actions">Allowed actions (one item per line)</label><textarea id="deep-actions" placeholder="Read files; write the summary"></textarea><button id="deep-plan-button" type="button">Show files and estimate</button><div id="deep-plan"></div></div></div>`;
     report.classList.add("visible");
+    setProgress("done");
     status.textContent = data.scan_status === "INCOMPLETE" ? "The report is incomplete; review the limitation above." : "Report ready.";
     report.scrollIntoView({ behavior: "smooth", block: "start" });
     document.getElementById("deep-plan-button").addEventListener("click", () => prepareDeepReview(input.value));
   } catch (error) {
+    document.getElementById("scan-progress").classList.remove("visible");
     status.textContent = error.message;
   } finally {
     button.disabled = false;
@@ -365,6 +415,10 @@ document.querySelectorAll("[data-example]").forEach(button => button.addEventLis
   document.getElementById("target-input").focus();
 }));
 
+document.querySelectorAll("[data-demo]").forEach(button => button.addEventListener("click", () => {
+  document.getElementById(button.dataset.demo).scrollIntoView({ behavior: "smooth", block: "start" });
+}));
+
 async function fetchCase(caseId, modelKey) {
   const key = caseId + "__" + modelKey;
   if (RESULTS_CACHE[key]) return RESULTS_CACHE[key];
@@ -395,10 +449,14 @@ function renderRun(data) {
   if (data.disposition === "ANALYSIS_FAILED") {
     html += `<div class="finding">Declined or failed: ${escapeHtml(String(data.failure_reason || "").slice(0, 160))}</div>`;
   } else {
-    (data.findings || []).slice(0, 2).forEach(f => {
+    (data.findings || []).slice(0, 3).forEach(f => {
       html += `<div class="finding">${escapeHtml(f.summary || "")}`;
-      const ev = (f.evidence || [])[0];
-      if (ev) html += `<span class="quote">${escapeHtml(ev.path)}: "${escapeHtml((ev.quote || "").slice(0, 90))}"</span>`;
+      const evidence = (f.evidence || []).slice(0, 4);
+      if (evidence.length) {
+        html += `<details class="run-evidence"><summary>Show ${evidence.length} evidence citation${evidence.length === 1 ? "" : "s"}</summary>`;
+        evidence.forEach(ev => { html += `<span class="quote">${escapeHtml(ev.path)}: "${escapeHtml((ev.quote || "").slice(0, 240))}"</span>`; });
+        html += `</details>`;
+      }
       html += `</div>`;
     });
     if (!data.findings || data.findings.length === 0) {
