@@ -141,7 +141,7 @@ cut.** If time runs short, cut UI polish (M4/M5) before correctness (M1/M2).
   live site's hero and disclosure sections verbatim.
 - **AI tools used:** Claude Code (this session) wrote and refactored the
   Python pipeline, the Vercel site, and this plan; Claude Fable 5.1 and
-  Claude Opus 4.8 are the two models tested and shown live on the site;
+  Claude Opus 5 are the two models tested and shown live on the site;
   an internal LLM council (`council-transcript-20260920T001404.md`)
   pressure-tested the track decision.
 
