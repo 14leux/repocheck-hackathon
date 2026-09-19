@@ -2,6 +2,81 @@
 
 **Status:** CLOSED
 
+## Post-H1 ad-hoc follow-up (2026-09-19) — PR #1 reviewed and partially landed, submission-guide reviewed and partially landed, B6 fixed
+
+No formal session was opened for this stretch (H1 is still the last formally
+closed session below); real work happened in a follow-up conversation and is
+checkpointed here per the discipline's "update at any natural pause" rule
+rather than left to go stale.
+
+**What happened, in order:**
+
+1. **Reviewed `kelly-leon`'s PR #1** (`14leux/repocheck-hackathon#1`,
+   "Add conditional-setup fixture"). Verified by diffing against its actual
+   merge-base (not `main`, which falsely showed dozens of deletions since the
+   branch predates most of H1) and by running its tests/CLI in an isolated
+   worktree. Two genuinely separate changes were bundled: (a) explicit Fable
+   5.1 model selection (`FABLE_MODEL` constant, `--model` CLI flag,
+   `output_config.effort`) — real, closed a genuine gap (the CLI silently
+   defaulted to Sonnet), ported by hand onto current `main` since the branch
+   was ~12 commits behind; (b) a new `fixtures/conditional-setup/` fixture —
+   safe but a near-duplicate of the already-tested `task-digest-v1`/`v2`
+   pattern, not merged. Landed in commit `7bb5885`. Posted a review comment
+   on the PR explaining the decision; PR left open pending a decision on
+   whether to close it.
+2. **Reviewed Steven Kamau Muriu's submission guide**
+   (`RepoCheck_Submission_Guide_for_Mailu.md`, not in this repo). Its §1
+   model-comparison table was cross-checked cell by cell against
+   `hackathon/results/rc02-report.md`/`rc04-sanity-report.md`/
+   `rc08-sanity-report.md` and confirmed exact. Its appendix (a 4-commit
+   `git am` patch) was tested in an isolated worktree and found **not to
+   apply cleanly** (fails at patch 3/4 on a context mismatch) even after
+   fixing one transcription slip — the two useful pieces were reconstructed
+   directly from the source document instead of via the broken patch:
+   `fixtures/credential-disguised-report/` (a genuinely new, previously
+   unfixtured RC-01-shaped case — RC-01 was tested live in H1 but never
+   committed to disk) and `hackathon/test_build_requirements.py` (a new,
+   non-duplicate offline acceptance test: 59 mechanical checks against the
+   handoff/card/blind-spots requirements, distinct in scope from
+   `test_deep_scan_bundle.py`). The guide's own B6 finding was verified and
+   found more serious than believed: skill-mode deep scan sent only
+   `[SKILL.md]`, so a **correct** model answer citing a helper file failed
+   citation validation and silently became `ANALYSIS_FAILED` — reproduced
+   live via the acceptance test before fixing it.
+3. **Fixed B6**: added `select_skill_bundle_files()` to `deep_scan.py`
+   (mirrors `select_high_risk_files_repo()`'s shape — lists the repo tree,
+   selects every blob under the `SKILL.md`'s own folder, still bounded by
+   `build_bundle()`'s existing caps), wired into `main()`'s skill mode.
+   Verified live against `14leux/repocheck-hackathon`'s own
+   `fixtures/task-digest-v1/`: preflight now lists all 4 files, not just
+   `SKILL.md`. Acceptance test re-run after the fix: 39/59 pass (was 37/59
+   before this stretch, 36/59 per the guide's own `origin/main`-only
+   baseline), 15 P0 items open (was 18 per the guide, 17 after the PR #1
+   model-selection fix alone). Landed in commit `49bdba3`.
+
+**Not done, carried forward:** the guide's §1 recommendation to contact
+organizers is moot — Mailu already decided against organizer contact this
+stretch, which leaves the guide's own fallback (Option A framing, disclosed
+honestly) as the live path, already aligned with H1's Narrative Option B
+decision. 14 P0 acceptance-test items remain open beyond B6 (see
+`hackathon/test_build_requirements.py` output for the current list — B3
+`output_config.format`, B8 frozen-prompt-file, B11 card freeze, F6 case-spec
+files under `hackathon/cases/` are the most structurally significant).
+PR #1 not closed. Fixture directories `fixtures/legit-permission-gated-setup`
+and the RC-02-pattern duplicates remain untouched (out of scope for this
+stretch). No formal session-close reconcile (KNOWLEDGE.md, DECISIONS.md,
+MILESTONES.md, codebase_map.md) was performed for this stretch — do that at
+the next formal close, not deferred indefinitely.
+
+**Verification performed:** both commits' touched files py_compile clean;
+`test_deep_scan_bundle.py` 11/11 and `test_provider_swap.py` re-run and
+passing after both commits; live CLI dry-runs against the real
+`14leux/repocheck-hackathon` GitHub repo (not just local fixtures) for both
+the `--model` flag and the B6 fix; `git log @{u}..HEAD` empty after each
+push.
+
+---
+
 ## Hackathon session H1 — D-7 decided (Narrative Option B); D-1 organizer answers now the sole blocker
 
 **Working copy:** `D:\Projects\repocheck-hackathon` (clone of the main
