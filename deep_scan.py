@@ -49,13 +49,15 @@ Usage:
     python deep_scan.py repo owner/repo --confirm
     python deep_scan.py skill owner/repo path/to/SKILL.md --confirm
     (omit --confirm to see the pre-flight only, no API call made)
+    (add --model <id> to override the default subject model, claude-fable-5-1,
+     e.g. for a comparator run once the organizer-approved ID is known)
 """
 
 import json
 import sys
 import time
 
-from anthropic_provider import AnthropicModelProvider, MissingApiKeyError
+from anthropic_provider import AnthropicModelProvider, FABLE_MODEL, MissingApiKeyError
 from bundle import build_bundle
 from code_scan import iter_scan_targets, scan_file_content
 from interfaces import ModelResponse
@@ -402,6 +404,16 @@ def main():
     confirmed = "--confirm" in args
     args = [a for a in args if a != "--confirm"]
 
+    # BLIND_SPOTS.md #D-1: the hackathon path must name claude-fable-5-1
+    # explicitly rather than inherit AnthropicModelProvider's generic
+    # DEFAULT_MODEL -- and record what was actually sent (--model lets a
+    # run switch to the organizer-approved comparator without editing code).
+    model = FABLE_MODEL
+    if "--model" in args:
+        i = args.index("--model")
+        model = args[i + 1]
+        del args[i:i + 2]
+
     if len(args) < 2:
         print(__doc__)
         sys.exit(1)
@@ -426,12 +438,13 @@ def main():
         sys.exit(1)
 
     preflight(paths)
+    print(f"Model: {model}")
     if not confirmed:
         print("(No API call made -- rerun with --confirm to proceed.)")
         return
 
     try:
-        provider = AnthropicModelProvider()
+        provider = AnthropicModelProvider(model=model)
         result = run_deep_scan(provider, owner, repo, paths)
     except MissingApiKeyError as e:
         print(f"\nERROR: {e}")
