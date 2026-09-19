@@ -2,7 +2,7 @@
 
 **Status:** IN PROGRESS
 
-## Hackathon session H1 — bundle collection fixed and verified offline; first-hour gate still open
+## Hackathon session H1 — bundle collection + local .env secrets done; first-hour gate still open
 
 **Working copy:** `D:\Projects\repocheck-hackathon` (clone of the main
 project at commit `667e669`). `origin` = `14leux/repocheck-hackathon`
@@ -35,19 +35,31 @@ collection-pipeline issues). No UI. The hard first-hour gate is still
 open — everything above is plumbing verified against a fake, not a
 demonstrated live capability.
 
-**Next concrete step:** (1) get `ANTHROPIC_API_KEY` into this
-environment and run `verify_deep_scan.py` for real — the two live-call
-acceptance criteria (injection resistance, a real detection win) are
-still unverified, offline tests don't substitute for them; (2) author
+**Secrets setup (this session):** the Bash/PowerShell tools spawn a
+fresh, non-persistent shell per call, so a shell-level `export` set in
+one tool call never reaches the next — a real limitation of this
+harness, not something fixable in the shell itself. Added `envfile.py`
+(stdlib-only, no new dependency) so `ANTHROPIC_API_KEY`/`GITHUB_TOKEN`
+load from a local, git-ignored `.env` file at the moment each provider
+reads them, bypassing shell persistence entirely. `.env.example`
+(tracked) documents the two variables; `.env` (real file, confirmed
+git-ignored via `git check-ignore -v .env`, absent from `git status`)
+exists locally with both keys still blank, waiting for Mailu to paste
+real values in directly.
+
+**Next concrete step:** (1) once `.env` has a real `ANTHROPIC_API_KEY`,
+run `verify_deep_scan.py` for real — the two live-call acceptance
+criteria (injection resistance, a real detection win) are still
+unverified, offline tests don't substitute for them; (2) author
 `hackathon/prompts/authority_review_v1.txt` and hash it into card §4;
 (3) get organizer answers into card §9; (4) re-cut D-2c with neutral
 naming and out-of-bundle permission, then build its harmful twin D-2.
 
 **Known blockers:**
-- `ANTHROPIC_API_KEY` is not set in this environment — blocks the Fable
-  smoke test and OI-020's live deep-scan verification (unchanged; the
-  offline suite added this session does not resolve this blocker, it
-  only proves the surrounding plumbing is correct given some response).
+- `.env`'s `ANTHROPIC_API_KEY` is still blank — blocks the Fable smoke
+  test and OI-020's live deep-scan verification (unchanged; the offline
+  suite added this session does not resolve this blocker, it only
+  proves the surrounding plumbing is correct given some response).
 - Organizer comparator and eligibility rules are still unconfirmed
   (carried over from main-project session 5).
 

@@ -10,6 +10,8 @@ avoiding dependencies forever, but there was no reason to add one here).
 
 Reads ANTHROPIC_API_KEY only (DECISIONS.md #014) and fails with a
 specific, actionable error if it's unset -- never a generic exception.
+Falls back to a local .env file (envfile.py) if the real environment
+doesn't have it -- see that module's docstring for why.
 """
 
 import json
@@ -18,6 +20,7 @@ import time
 import urllib.error
 import urllib.request
 
+from envfile import load_env_file
 from interfaces import ModelProvider, ModelResponse
 
 ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages"
@@ -54,12 +57,15 @@ class AnthropicModelProvider(ModelProvider):
         return self.analyze_detailed(system_prompt, untrusted_content).text
 
     def analyze_detailed(self, system_prompt, untrusted_content):
+        load_env_file()  # no-op if .env doesn't exist or the real env already has the key
         api_key = os.environ.get("ANTHROPIC_API_KEY")
         if not api_key:
             raise MissingApiKeyError(
                 "ANTHROPIC_API_KEY is not set. Deep scan needs your own Anthropic "
                 "API key to run (DECISIONS.md #014/#018) -- set it with:\n"
                 "  export ANTHROPIC_API_KEY=sk-ant-...\n"
+                "or put ANTHROPIC_API_KEY=sk-ant-... in a local .env file (see "
+                ".env.example) -- never commit it, .env is already git-ignored.\n"
                 "Get a key at https://console.anthropic.com/settings/keys -- for "
                 "a one-off scan, consider giving it a short expiration there "
                 "(e.g. 1 day) so it stops working on its own afterward. See "

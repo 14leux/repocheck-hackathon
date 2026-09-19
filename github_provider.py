@@ -5,6 +5,9 @@ RepoCheck M7 -- GitHub implementation of FileAccessProvider.
 The only file-access implementation in v1 (DECISIONS.md #012). Moved
 here verbatim from skeleton.py's original github_get/list_tree/
 fetch_file functions -- an extraction, not a rewrite.
+
+GITHUB_TOKEN falls back to a local .env file (envfile.py) if the real
+environment doesn't have it -- see that module's docstring for why.
 """
 
 import base64
@@ -15,6 +18,7 @@ import tarfile
 import urllib.error
 import urllib.request
 
+from envfile import load_env_file
 from interfaces import FileAccessProvider
 
 GITHUB_API = "https://api.github.com"
@@ -30,6 +34,7 @@ class GitHubFileAccessProvider(FileAccessProvider):
                 "User-Agent": "repocheck-skeleton",
             },
         )
+        load_env_file()  # no-op if .env doesn't exist or the real env already has the token
         token = os.environ.get("GITHUB_TOKEN")
         if token:
             req.add_header("Authorization", f"Bearer {token}")

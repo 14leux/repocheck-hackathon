@@ -825,3 +825,40 @@ section A (D-2c's answer-key leak, in-bundle permission claim,
 structural mismatch with its future harmful twin) — none of those were
 touched in this fix, since they're fixture-authoring issues, not
 collection-pipeline issues.
+
+## Hackathon session H1 — local .env secrets, no shell persistence needed
+
+The Bash and PowerShell tools both spawn a fresh, non-persistent shell
+per call — confirmed from their own tool descriptions ("shell state
+does not persist"). That meant the earlier advice ("set
+ANTHROPIC_API_KEY with `setx`, then fully restart Claude Code so the
+new process inherits it") was correct but heavier than necessary: it
+requires quitting and reopening the whole session to take effect.
+
+**Simpler fix: load the secret from disk, not from the shell.** New
+`envfile.py` — stdlib only, no `python-dotenv` dependency (keeps the
+project's zero-dependency design intact) — reads a git-ignored `.env`
+file directly in the Python process the moment a secret is actually
+needed, via `os.environ.setdefault()` so a real environment variable
+(one set with `setx`, `export`, or a CI secret) always wins over the
+file. `anthropic_provider.py` and `github_provider.py` each call it
+once, right at their existing `os.environ.get(...)` call site — not a
+new step every caller has to remember.
+
+This sidesteps the shell-persistence problem entirely: since the value
+now comes from a file read fresh by each Python process, it doesn't
+matter that the shell state that started that process is thrown away
+before the next tool call. No session restart needed, and the raw key
+value never has to appear in a chat message or a tool-call argument to
+get set — the user edits `.env` directly with a normal text editor.
+
+**Verified:** parses `KEY=VALUE`, `#` comments, blank lines, and
+quoted values correctly against a temp file; confirmed an already-set
+real env var is never overwritten by the file (`setdefault`, not a
+plain assignment); confirmed `AnthropicModelProvider`'s existing
+`MissingApiKeyError` path still fires correctly when neither the real
+environment nor `.env` has a value, with its message updated to
+mention `.env.example` as an option. `.env` itself was confirmed
+git-ignored (`git check-ignore -v .env`) and absent from `git status`
+before anything was staged — only `.env.example` (the tracked
+template, no real values) and `envfile.py` show as new files.
