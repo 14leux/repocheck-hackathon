@@ -294,9 +294,9 @@
       <table class="compare">
         <tr><th>Model</th><th class="n">Correct</th><th class="n">Refused</th><th class="n">Other failure</th></tr>
         <tr><td>claude-fable-5-1</td><td class="n">2 / 6</td><td class="n">4</td><td class="n">0</td></tr>
-        <tr><td>claude-opus-4-8 (comparator)</td><td class="n">4 / 6</td><td class="n">0</td><td class="n">2</td></tr>
+        <tr><td>claude-opus-5 (current 4-case cache)</td><td class="n">2 / 4</td><td class="n">2</td><td class="n">0</td></tr>
       </table>
-      <p class="quote-line" style="margin-top:16px;">"We would rather show you a true negative than a staged win. Every run is in the repo."</p>
+      <p class="quote-line" style="margin-top:16px;">The Fable row is the earlier six-run snapshot; the Opus 5 row is the current four-case cache shown above. "We would rather show you a true negative than a staged win. Every run is in the repo."</p>
     </div>
   </section>
 
@@ -473,7 +473,8 @@ async function fetchCase(caseId, modelKey) {
   const key = caseId + "__" + modelKey;
   if (RESULTS_CACHE[key]) return RESULTS_CACHE[key];
   const res = await fetch(`/api/scan?case=${encodeURIComponent(caseId)}&model=${encodeURIComponent(modelKey)}`);
-  const data = await res.json();
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || `Could not load ${caseId}`);
   RESULTS_CACHE[key] = data;
   return data;
 }
