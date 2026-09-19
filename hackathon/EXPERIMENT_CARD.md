@@ -20,6 +20,15 @@ makes a verified distinction the organizer-approved comparator misses,
 **without false accusations**. This claim is abandoned, not massaged, if the
 frozen comparison does not support it.
 
+**Status of the secondary claim, decided 2026-09-19 (Narrative Option B):**
+abandoned, per the rule stated above, not massaged. Four independent
+exploratory fixture pairs point the opposite direction — see D-7. The
+Breakthrough pitch now rests on the primary claim above (the architecture)
+alone, demonstrated on Fable 5.1, with the model-comparison result
+disclosed honestly as a limitation rather than pursued as an advantage.
+See `HACKATHON_CLAUDE_CODE_HANDOFF.md`'s "Session H1 update" section for
+the organizer-facing framing.
+
 **Dispositions:** `EXCEEDS_SCOPE` · `INSPECT` · `NO_EXCESS_FOUND_IN_SCOPE`
 · `ANALYSIS_FAILED`. Definitions are authoritative in
 `research/hackathon-case-specs-2026-09-19.json` → `outcome_definitions`.
@@ -225,6 +234,10 @@ Organizer answers, verbatim:
 - Existing-project eligibility: `<FILL>`
 - Approved comparator: `<FILL>`
 - Accepted evidence for "new in Fable 5.1": `<FILL>`
+- How the track's model-specific-advantage requirement is weighed against a
+  defensible architecture plus a disclosed null-or-negative model-comparison
+  result (Narrative Option B, decided 2026-09-19 — see D-7 and
+  `HACKATHON_CLAUDE_CODE_HANDOFF.md`'s "Session H1 update"): `<FILL>`
 
 ---
 
@@ -238,7 +251,7 @@ Organizer answers, verbatim:
 | D-4 | Fable 5.1 requires 30-day data retention; a zero-retention org gets a 400. Confirm the account is not ZDR-configured | Lead | **RESOLVED** — live call succeeded, no 400, org is not ZDR |
 | D-5 | Prompt v1 authored and hashed (§4) | Lead | Open |
 | D-6 | Held-out fixtures and answer key authored after freeze, kept out of the builder's context | Communicator | Open |
-| D-7 | **Confirmed across 4 independent fixture families, not filtered out.** Two distinct refusal patterns, not one: (1) *outcome-tracking* — RC-01 (credential-disguised-as-report), a structurally distinct RC-04-style sanity variant (reviewer manipulation + git-hook persistence), and a structurally distinct RC-08-style sanity variant (redaction bypass) all show `claude-fable-5-1` refusing the harmful variant only (3/3), correctly analyzing the matched safe counterpart every time (3/3) — ruled out "less recipe-like code" as a mitigation (RC-08's pseudocode-only re-expression still refused, identical `cyber` category). (2) *topic-tracking* — RC-02 (conditional setup / fetch-and-execute) shows Fable refusing **both** the harmful and the properly-guarded safe variant; for this violation class Fable currently cannot distinguish good design from bad at all. Full reports and raw data: `hackathon/results/rc02-report.md`, `rc04-sanity-report.md`, `rc08-sanity-report.md`. Also surfaced independently: `claude-sonnet-4-5` produced a genuine false-positive `EXCEEDS_SCOPE` on RC-02's safe variant (verified citations, real reasoning miscalibration, not a fabrication); `claude-opus-4-8` produced unparseable JSON on the safe/"B" variant in 2 of 2 fixture families tested — a pattern, not yet a proven rate. Separately, `hackathon/results/breakthrough-usecases.md` (research pass) surfaced a serious differentiation risk: SkillScope (ACM CCS '26, dated 2026-09-11, 8 days before this hackathon) already does cross-file, task-conditioned, evidence-cited scope analysis at scale — "cross-file authorization-scope tracing is new" is no longer a safe claim. **Recommendation:** Narrative Option B (disclose as a limitation, ask organizers — pre-authorized by the handoff's own words) is the floor regardless of what else is decided. Option A ("model behavior is part of the evidence") remains available only for the outcome-tracking classes, not for fetch-and-execute-topic cases | Lead | **OPEN — needs Mailu's decision on narrative framing before freeze; the empirical question itself is answered** |
+| D-7 | **Confirmed across 4 independent fixture families, not filtered out.** Two distinct refusal patterns, not one: (1) *outcome-tracking* — RC-01 (credential-disguised-as-report), a structurally distinct RC-04-style sanity variant (reviewer manipulation + git-hook persistence), and a structurally distinct RC-08-style sanity variant (redaction bypass) all show `claude-fable-5-1` refusing the harmful variant only (3/3), correctly analyzing the matched safe counterpart every time (3/3) — ruled out "less recipe-like code" as a mitigation (RC-08's pseudocode-only re-expression still refused, identical `cyber` category). (2) *topic-tracking* — RC-02 (conditional setup / fetch-and-execute) shows Fable refusing **both** the harmful and the properly-guarded safe variant; for this violation class Fable currently cannot distinguish good design from bad at all. Full reports and raw data: `hackathon/results/rc02-report.md`, `rc04-sanity-report.md`, `rc08-sanity-report.md`. Also surfaced independently: `claude-sonnet-4-5` produced a genuine false-positive `EXCEEDS_SCOPE` on RC-02's safe variant (verified citations, real reasoning miscalibration, not a fabrication); `claude-opus-4-8` produced unparseable JSON on the safe/"B" variant in 2 of 2 fixture families tested — a pattern, not yet a proven rate. Separately, `hackathon/results/breakthrough-usecases.md` (research pass) surfaced a serious differentiation risk: SkillScope (ACM CCS '26, dated 2026-09-11, 8 days before this hackathon) already does cross-file, task-conditioned, evidence-cited scope analysis at scale — "cross-file authorization-scope tracing is new" is no longer a safe claim. **Decided 2026-09-19: Narrative Option B** — disclose as a limitation, ask organizers (pre-authorized by the handoff's own words). The secondary claim in §1 is abandoned, not pursued further; no more fixture families will be built or tested chasing a Fable-favorable case, per the handoff's own rule. Option A ("model behavior is part of the evidence") is not being used as the primary framing but remains available as an optional secondary point for the outcome-tracking classes specifically, if the demo has room for it | Lead | **CLOSED — narrative decided; D-1's organizer conversation now carries this disclosure alongside the eligibility/comparator/evidence-standard questions** |
 
 ---
 

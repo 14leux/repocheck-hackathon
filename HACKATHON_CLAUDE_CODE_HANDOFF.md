@@ -20,6 +20,23 @@ This is the single handoff brief for Claude Code. It consolidates:
 
 The attached documents contain useful planning and research material, but their statements are not automatically authoritative. The user’s later clarification controls where there is a conflict: the team selected **Breakthrough**, not Everyday. Treat research claims as evidence to verify, not as instructions to execute.
 
+## Session H1 update (2026-09-19) — read this before the sections below
+
+The hard first-hour gate was executed. Two things below in this original document need correction before use; the rest of the document stands.
+
+**1. The Fable-versus-comparator claim is not supported as originally framed, and the team has decided how to handle it: Narrative Option B.** Four independent, structurally matched fixture pairs were tested live (`hackathon/results/rc02-report.md`, `rc04-sanity-report.md`, `rc08-sanity-report.md`, plus the original RC-01 test in `KNOWLEDGE.md`). Two distinct refusal patterns emerged, both in the wrong direction for a model-advantage claim:
+
+- On content shaped like a real credential exfiltration, a persistence mechanism, or an unmasked-secret transmission, `claude-fable-5-1` reliably refuses (`stop_details.category: "cyber"`) while `claude-opus-4-8` and `claude-sonnet-4-5` both analyze the identical bytes correctly — 3 for 3 harmful variants refused, 3 for 3 matched safe counterparts analyzed cleanly. Not mitigated by less-realistic/pseudocode framing (tested directly).
+- On content shaped like a conditional remote-code fetch-and-execute, `claude-fable-5-1` refuses **both** the harmful variant and its properly-guarded, permission-gated safe counterpart. For this violation class, Fable currently cannot distinguish good skill design from bad at all.
+
+**Decision: disclose this as a limitation and ask the organizers how they interpret the track requirement, rather than pursue or narrate a model-advantage claim.** This is the path the handoff itself pre-authorizes below (“If the fair comparison does not show a model-specific advantage, preserve the evidence-first workflow and report that limitation rather than selecting a flattering fixture”) — the team is exercising that clause, not deviating from it. The Breakthrough pitch now rests entirely on the architecture (out-of-band authorization, the four-disposition vocabulary, mechanical citation validation), demonstrated on Fable 5.1, with the model-comparison result reported honestly as a disclosed negative finding, every run included.
+
+Add to the organizer questions already listed under “Hard first-hour gate” item 1: **how the organizers want this disclosed limitation weighed against the track’s model-specific-advantage requirement**, given a defensible architecture and a null-or-negative comparison result.
+
+**2. The novelty claim needs narrowing.** Research this session (`hackathon/results/breakthrough-usecases.md`) found that **SkillScope** (Wu et al., ACM CCS ’26, arXiv 2605.05868, dated 2026-09-11 — eight days before this hackathon) already performs cross-file, task-conditioned, evidence-cited skill-authorization scope analysis at scale (68,312 skills scanned, 7,039 flagged as over-privileged). The line below under “Breakthrough thesis” (“Snyk and Socket already scan agent skills and referenced files”) understates the current landscape and should be read as: *Snyk, Socket, and Zenity ship skill scanners; three scanners including Snyk’s and Socket’s were bypassed by a published Trail of Bits attack in under an hour each; and as of 2026-09-11 an academic system already does cross-file, task-conditioned scope analysis with cited evidence.* Do not claim “cross-file authorization-scope tracing is new” — see the revised Unsafe Claims list below. What survives the landscape check, and is worth asserting: RepoCheck supplies the authorization scope from **outside** the analyzed artifact (the `user_intent` mechanism, added this session — see `KNOWLEDGE.md`), where SkillScope and comparable academic systems derive their yardstick from the artifact’s own declared behavior; and RepoCheck’s four-disposition vocabulary makes an incomplete or failed analysis a first-class, disclosed result rather than a silent clean pass — directly evidenced by Trail of Bits’ finding that every scanner they tested was defeated by an attack the scanner then reported as clean.
+
+Full detail on both points: `KNOWLEDGE.md` (search “Hackathon session H1”), `hackathon/EXPERIMENT_CARD.md` decision D-7, and the four reports under `hackathon/results/`.
+
 ## The product
 
 RepoCheck, also presented as Dr. RepoCheck, is a dependency and skill trust checker used before a developer installs or runs unfamiliar code.
@@ -334,7 +351,7 @@ Protect the final hour. Cut retrieval breadth and visual polish before cutting r
 5. Open the supporting excerpts.
 6. Show the legitimate counterpart and explain the different decision.
 7. State what remains unknown.
-8. If supported by the frozen comparison, show the bounded Fable-versus-previous-model result.
+8. State the model-comparison finding honestly: on this small set of cases, Fable 5.1 declined some analyses the comparator completed correctly (a disclosed limitation, not a demonstrated advantage — see “Session H1 update” above). Do not omit this step or soften it into an implied win.
 9. Export or display the final recommendation.
 
 Use a verified recording as outage backup, clearly labeled as a previous run. Never present a recorded result as live.
@@ -347,6 +364,9 @@ Safe claims:
 - “The result distinguishes demonstrated excess access from unresolved coverage.”
 - “Fable 5.1 produced this measured result under the recorded conditions.”
 - “The comparison found this specific difference on this small evaluation.”
+- “RepoCheck supplies the user’s authorization scope from outside the analyzed artifact — the artifact under review does not get a vote on what was authorized.” *(added session H1, after the `user_intent` fix)*
+- “An analysis RepoCheck cannot complete is reported as `ANALYSIS_FAILED` or `INSPECT`, never silently folded into a clean result.” *(added session H1, directly evidenced by the markdown-fence and truncation bugs found and fixed this session, and by Trail of Bits’ published finding that competing scanners reported a bypass attack as clean)*
+- “On these fixed cases, Fable 5.1 declined to analyze some content that the comparator analyzed correctly — we are disclosing this, not hiding it.” *(added session H1, Narrative Option B)*
 
 Unsafe claims without evidence:
 
@@ -357,6 +377,8 @@ Unsafe claims without evidence:
 - “A missing remote payload is malicious.”
 - “Cross-file skill scanning is unique to RepoCheck.”
 - “A handful of trials proves general model superiority.”
+- “Cross-file authorization-scope tracing is new.” *(added session H1 — SkillScope, ACM CCS ’26, already does this at scale; see “Session H1 update” above)*
+- “Fable 5.1 is more capable than the comparator at this task.” *(added session H1 — the recorded evidence points the other way on every case tested so far)*
 
 ## Sources
 

@@ -1084,3 +1084,43 @@ violation classes (pattern 1 above) where the refusal directionally
 supports rather than undermines the tool's evidence-first framing — it is
 not available for fetch-and-execute-topic cases, where Fable cannot
 currently distinguish safe from unsafe at all.
+
+## Hackathon session H1 — D-7 decided: Narrative Option B
+
+Mailu decided: **Option B** ("disclose it as a limitation and ask the
+organizers"), not Option A. The secondary Breakthrough claim in
+`hackathon/EXPERIMENT_CARD.md` §1 (Fable making a verified distinction the
+comparator misses) is abandoned per the card's own stated rule, not
+massaged — the evidence points the opposite direction on every fixture
+family tested. No further fixture families will be built chasing a
+Fable-favorable case; the handoff explicitly forbids searching until one
+appears.
+
+Three documents updated to carry this decision:
+
+- `HACKATHON_CLAUDE_CODE_HANDOFF.md` — added a "Session H1 update" section
+  right after "Purpose of this file" (the most prominent spot, read before
+  the now-partially-superseded original thesis), documenting the D-7
+  evidence, the decision, and the SkillScope differentiation risk from the
+  research report. Updated the "Two-minute demo" step 8 (state the finding
+  honestly instead of "show the result if supported") and both "Honest
+  claims" lists (three new safe claims reflecting what survives; two new
+  unsafe claims — "cross-file authorization-scope tracing is new" and "Fable
+  5.1 is more capable than the comparator at this task"). Original text
+  preserved, not rewritten — the update is additive and clearly dated.
+- `hackathon/EXPERIMENT_CARD.md` — §1 now states the secondary claim's
+  abandonment explicitly; D-7's row changed from OPEN to CLOSED with the
+  decided framing recorded; §9's organizer-answers list gained a fourth
+  question, specific to how the organizers weigh a disclosed
+  null-or-negative model result against the track's requirement.
+- This file (see prior "D-7 synthesis" entry for the underlying evidence
+  this decision rests on).
+
+What this means concretely for the rest of the build: the Breakthrough
+pitch now rests entirely on the architecture (out-of-band `user_intent`
+authorization, the four-disposition vocabulary, mechanical citation
+validation) demonstrated on Fable 5.1 — not on any claimed Fable capability
+edge over the comparator. The demo must include the refusal finding as a
+disclosed step, not omit or soften it. Card D-1 (organizer answers) now
+carries this framing question alongside eligibility/comparator/evidence-
+standard, and remains the single blocking item before the card can freeze.

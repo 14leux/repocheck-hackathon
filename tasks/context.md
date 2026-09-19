@@ -2,7 +2,7 @@
 
 **Status:** IN PROGRESS
 
-## Hackathon session H1 — D-7 confirmed across 4 fixture families; two distinct refusal patterns identified; Breakthrough framing needs Mailu's decision
+## Hackathon session H1 — D-7 decided (Narrative Option B); D-1 organizer answers now the sole blocker
 
 **Working copy:** `D:\Projects\repocheck-hackathon` (clone of the main
 project at commit `667e669`). `origin` = `14leux/repocheck-hackathon`
@@ -52,29 +52,38 @@ immediately: Sonnet gives clear instructions, Haiku or direct
 orchestrator execution does mechanical work — no more parallel Opus-tier
 subagent fleets for the remainder of this timed exercise.**
 
+**D-7 decided: Narrative Option B.** Mailu chose disclosure over pursuing
+a model-advantage claim. The secondary Breakthrough claim in card §1 is
+now explicitly marked abandoned (not massaged) in the card itself.
+Updated to carry this decision: `HACKATHON_CLAUDE_CODE_HANDOFF.md` (new
+"Session H1 update" section, revised demo step 8, revised Honest/Unsafe
+claims lists — original text preserved, update is additive and dated),
+`hackathon/EXPERIMENT_CARD.md` (§1 status note, D-7 row now CLOSED with
+the decision recorded, §9 gained a fourth organizer question specific to
+this disclosure), `KNOWLEDGE.md` (decision entry).
+
 **Not yet done:** `hackathon/EXPERIMENT_CARD.md` is still DRAFT — NOT
-FROZEN. D-3/D-4 resolved; D-1 (organizer answers) still BLOCKING; D-7 is
-now evidence-complete but needs Mailu's decision on which narrative
-option (A: "model behavior is part of the evidence," available only for
-outcome-tracking cases; B: disclose as a limitation, the floor regardless)
-before the card can freeze. No prompt file authored yet (§4). D-2c (the
-original hand-built fixture) still has the answer-key-leak/in-bundle-
-permission defects from `hackathon/BLIND_SPOTS.md` §A — untouched, since
-the four new fixture families built this session are cleaner examples of
-correct fixture design and can likely supersede it rather than needing a
-separate fix. No UI. `verify_deep_scan.py` (Sonnet 4.5, single-file
-interface) passed both its checks, but that's a different code path from
-the joint-bundle pipeline this session exercised live four more times —
+FROZEN. D-3/D-4/D-7 all resolved; **D-1 (organizer answers) is now the
+sole blocking item.** No prompt file authored yet (§4). D-2c (the original
+hand-built fixture) still has the answer-key-leak/in-bundle-permission
+defects from `hackathon/BLIND_SPOTS.md` §A — untouched, since the four new
+fixture families built this session are cleaner examples of correct
+fixture design and can likely supersede it rather than needing a separate
+fix. No UI. `verify_deep_scan.py` (Sonnet 4.5, single-file interface)
+passed both its checks, but that's a different code path from the
+joint-bundle pipeline this session exercised live four more times —
 OI-020's "M9 verified" claim should attach to the joint-bundle evidence,
 not just verify_deep_scan.py's older pass.
 
-**Next concrete step:** (1) review the four reports and the research
-report with Mailu, decide the narrative framing for D-7; (2) author
-`hackathon/prompts/authority_review_v1.txt` and hash it into card §4;
-(3) get organizer answers into card §9; (4) decide whether to build the
-official held-out H-1/H-2 (RC-08/RC-04) instances now that their sanity
-variants have already characterized the refusal boundary, or defer per
-the card's original held-out timing.
+**Next concrete step:** (1) get organizer answers into card §9 — now the
+only blocker before freeze, including the new disclosure-framing question;
+(2) author `hackathon/prompts/authority_review_v1.txt` and hash it into
+card §4; (3) decide whether to build the official held-out H-1/H-2
+(RC-08/RC-04) instances now that their sanity variants have already
+characterized the refusal boundary, or defer per the card's original
+held-out timing; (4) start preparing the demo narrative around the
+architecture claim, since the secondary claim is no longer part of the
+pitch.
 
 **Known blockers:**
 - Organizer comparator and eligibility rules are still unconfirmed
