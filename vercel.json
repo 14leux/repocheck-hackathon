@@ -3,6 +3,12 @@
   "functions": {
     "api/scan.py": {
       "maxDuration": 60
+    },
+    "api/check.py": {
+      "maxDuration": 60
+    },
+    "api/deep.py": {
+      "maxDuration": 300
     }
   }
 }

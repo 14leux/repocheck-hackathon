@@ -56,18 +56,25 @@ class MissingApiKeyError(RuntimeError):
 
 class AnthropicModelProvider(ModelProvider):
     def __init__(self, model=DEFAULT_MODEL, *, max_tokens=DEFAULT_MAX_TOKENS,
-                 timeout=DEFAULT_TIMEOUT_SECONDS):
+                 timeout=DEFAULT_TIMEOUT_SECONDS, api_key=None):
         self.model = model
         self.max_tokens = max_tokens
         self.timeout = timeout
+        # A request-scoped BYOK key may be supplied by a caller.  It is kept
+        # only on this provider instance and is never copied to the process
+        # environment or written to disk.  The CLI continues to use the
+        # existing environment/.env path when api_key is omitted.
+        self.api_key = api_key
 
     def analyze(self, system_prompt, untrusted_content):
         """Text-only result, for callers that predate ModelResponse."""
         return self.analyze_detailed(system_prompt, untrusted_content).text
 
     def analyze_detailed(self, system_prompt, untrusted_content):
-        load_env_file()  # no-op if .env doesn't exist or the real env already has the key
-        api_key = os.environ.get("ANTHROPIC_API_KEY")
+        api_key = self.api_key
+        if api_key is None:
+            load_env_file()  # no-op if .env doesn't exist or the real env already has the key
+            api_key = os.environ.get("ANTHROPIC_API_KEY")
         if not api_key:
             raise MissingApiKeyError(
                 "ANTHROPIC_API_KEY is not set. Deep scan needs your own Anthropic "

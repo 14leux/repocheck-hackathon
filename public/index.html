@@ -127,6 +127,41 @@
   .not-a-guarantee{
     font-size:13px; color:var(--ink-soft); margin-top:14px; text-align:center;
   }
+  .checker{max-width:680px; margin:0 auto 24px; text-align:left;}
+  .checker label{display:block; font-size:13px; font-weight:700; margin-bottom:7px;}
+  .checker-row{display:flex; gap:8px;}
+  .checker input{flex:1; min-width:0; border:1px solid var(--border); border-radius:9px;
+    padding:12px 13px; background:var(--card); color:var(--ink); font:inherit;}
+  .checker button{border:0; border-radius:9px; padding:0 18px; background:var(--accent);
+    color:#fff; font:inherit; font-weight:700; cursor:pointer; white-space:nowrap;}
+  .checker button:disabled{opacity:.6; cursor:wait;}
+  .examples{font-size:12px; color:var(--ink-soft); margin-top:8px;}
+  .examples button{border:0; background:none; color:var(--accent); padding:0; margin-right:10px;
+    font:inherit; cursor:pointer; text-decoration:underline;}
+  .checker-status{font-size:13px; color:var(--ink-soft); margin-top:10px; min-height:20px;}
+  .live-report{display:none; background:var(--card); border:1px solid var(--border);
+    border-radius:16px; padding:24px; margin:20px auto 0; text-align:left; max-width:680px;}
+  .live-report.visible{display:block;}
+  .live-report h2{font-size:21px; margin:0 0 5px;}
+  .report-meta{font-size:12px; color:var(--ink-soft); margin-bottom:16px;}
+  .verdict{display:inline-block; font-size:14px; font-weight:800; padding:5px 11px;
+    border-radius:999px; margin-bottom:14px;}
+  .verdict.clear{background:var(--accent-soft); color:var(--accent);}
+  .verdict.caution{background:var(--gold-soft); color:var(--gold);}
+  .verdict.danger,.verdict.incomplete{background:var(--danger-soft); color:var(--danger);}
+  .report-section{border-top:1px solid var(--border); padding-top:12px; margin-top:14px;}
+  .report-section h3{font-size:14px; margin:0 0 7px;}
+  .report-section p{font-size:14px; margin:0 0 8px;}
+  .report-item{font-size:13px; padding:10px 0; border-top:1px solid var(--border);}
+  .report-item:first-child{border-top:0;}
+  .report-item strong{font-size:12px; text-transform:uppercase; letter-spacing:.04em;}
+  .deep-box{background:var(--gold-soft); border:1px solid var(--border); border-radius:12px; padding:14px; margin-top:12px;}
+  .deep-box label{display:block; font-size:12px; font-weight:700; margin:9px 0 4px;}
+  .deep-box textarea,.deep-box input{width:100%; border:1px solid var(--border); border-radius:7px; padding:8px; background:var(--card); color:var(--ink); font:inherit;}
+  .deep-box textarea{min-height:68px; resize:vertical;}
+  .deep-box button{border:0; border-radius:7px; padding:8px 12px; margin-top:10px; background:var(--accent); color:#fff; font:inherit; font-weight:700; cursor:pointer;}
+  .deep-note{font-size:12px !important; color:var(--ink-soft);}
+  @media (max-width:560px){ .checker-row{flex-direction:column;} .checker button{padding:11px 16px;} }
 </style>
 </head>
 <body>
@@ -134,8 +169,21 @@
 
   <header class="hero">
     <p class="eyebrow">Dr. RepoCheck</p>
-    <h1>Before you install a skill, see what it would actually do</h1>
-    <p class="pitch">Before a developer installs a Claude Code skill, Dr. RepoCheck shows whether it would do more than they authorized -- and cites the exact lines that prove it.</p>
+    <h1>Check a repo before you trust it</h1>
+    <p class="pitch">Paste a public GitHub repository or Claude Code skill. Get a free static risk report with evidence and clear limits.</p>
+    <form class="checker" id="checker-form">
+      <label for="target-input">GitHub repository or SKILL.md URL</label>
+      <div class="checker-row">
+        <input id="target-input" name="target" autocomplete="url" spellcheck="false" placeholder="owner/repo or https://github.com/owner/repo" required>
+        <button id="check-button" type="submit">Check link</button>
+      </div>
+      <div class="examples">Try an example:
+        <button type="button" data-example="14leux/repocheck-hackathon">this repo</button>
+        <button type="button" data-example="https://github.com/14leux/repocheck-hackathon/blob/main/skills/repocheck/SKILL.md">skill URL</button>
+      </div>
+      <div class="checker-status" id="checker-status" role="status" aria-live="polite"></div>
+    </form>
+    <div class="live-report" id="live-report" aria-live="polite"></div>
     <div class="damage">
       <div class="label">A real shape of damage this catches</div>
       <p>A skill says it summarizes your weekly commits into a report. Nothing in its description mentions credentials. Underneath, one file reads <code>~/.aws/credentials</code>, a second renames it to a field called <code>session_context</code>, a third posts the finished "report" to the author's server. You find out when your cloud bill shows five figures of compute you never ran.</p>
@@ -162,7 +210,7 @@
 
   <section>
     <h2>See it live</h2>
-    <p class="lede">Three real skill bundles. Real API calls, cached and timestamped so the page loads instantly -- not staged, not mocked.</p>
+    <p class="lede">Three verified example reports from real, timestamped model runs. They are cached so the page loads quickly and does not create an unbounded public API cost.</p>
 
     <div class="case" id="case-reviewer">
       <h3>The manipulated reviewer</h3>
@@ -206,6 +254,117 @@
 
 <script>
 const RESULTS_CACHE = {};
+
+const statusCopy = {
+  CLEAR: ["clear", "CLEAR", "No flagged risks were found in the inspected snapshot. This is not a safety guarantee."],
+  CAUTION: ["caution", "CAUTION", "Review these findings before trusting or installing this target."],
+  DANGER: ["danger", "DANGER", "RepoCheck found a severe risk that needs attention before you proceed."],
+  UNKNOWN: ["incomplete", "INCOMPLETE", "RepoCheck could not complete every check. Do not treat this as a clean result."]
+};
+
+function renderStaticReport(report) {
+  const verdict = report.scan_status === "INCOMPLETE" ? "UNKNOWN" : (report.verdict || "UNKNOWN");
+  const [klass, label, summary] = statusCopy[verdict] || statusCopy.UNKNOWN;
+  let html = `<h2>Static report</h2>`;
+  html += `<div class="report-meta">${escapeHtml(report.repo || "GitHub target")} · ${escapeHtml(report.mode || "scan")} · ${escapeHtml(report.scan_timestamp || "timestamp unavailable")}</div>`;
+  html += `<span class="verdict ${klass}">${label}</span><div class="report-section"><p>${summary}</p></div>`;
+  if (report.about) html += `<div class="report-section"><h3>What this is</h3><p>${escapeHtml(report.about)}</p></div>`;
+  const findings = report.findings || [];
+  html += `<div class="report-section"><h3>Findings (${findings.length})</h3>`;
+  if (!findings.length) html += `<p>No findings in the inspected snapshot.</p>`;
+  findings.forEach(f => {
+    html += `<div class="report-item"><strong>${escapeHtml(f.severity || "review")} · ${escapeHtml(f.category || "finding")}</strong><p>${escapeHtml(f.detail || f.what || "Review this finding.")}</p>`;
+    if (f.source) html += `<div class="report-meta">Source: ${escapeHtml(f.source)}</div>`;
+    html += `</div>`;
+  });
+  html += `</div>`;
+  const caveats = report.caveats || [];
+  if (caveats.length) {
+    html += `<div class="report-section"><h3>Caveats</h3>`;
+    caveats.forEach(c => html += `<div class="report-item">${escapeHtml(c.detail || c.category || "Not fully verified")}</div>`);
+    html += `</div>`;
+  }
+  return html;
+}
+
+document.getElementById("checker-form").addEventListener("submit", async event => {
+  event.preventDefault();
+  const input = document.getElementById("target-input");
+  const button = document.getElementById("check-button");
+  const status = document.getElementById("checker-status");
+  const report = document.getElementById("live-report");
+  button.disabled = true;
+  status.textContent = "Reading the public GitHub snapshot…";
+  report.classList.remove("visible");
+  try {
+    const response = await fetch("/api/check", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ target: input.value }) });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.error || "The scan could not start.");
+    report.innerHTML = renderStaticReport(data) + `<div class="report-section"><div class="deep-box"><strong>Optional deep scope review</strong><p class="deep-note">Use your own Anthropic API key. We will show the selected files and an estimate before any model call. Your key is used once and not stored.</p><label for="deep-task">What should this target do?</label><textarea id="deep-task" placeholder="Summarize weekly commits without sending credentials."></textarea><label for="deep-data">Allowed data (one item per line)</label><textarea id="deep-data" placeholder="Repository files needed for the summary"></textarea><label for="deep-recipients">Allowed recipients (one item per line)</label><textarea id="deep-recipients" placeholder="none"></textarea><label for="deep-actions">Allowed actions (one item per line)</label><textarea id="deep-actions" placeholder="Read files; write the summary"></textarea><button id="deep-plan-button" type="button">Show files and estimate</button><div id="deep-plan"></div></div></div>`;
+    report.classList.add("visible");
+    status.textContent = data.scan_status === "INCOMPLETE" ? "The report is incomplete; review the limitation above." : "Report ready.";
+    report.scrollIntoView({ behavior: "smooth", block: "start" });
+    document.getElementById("deep-plan-button").addEventListener("click", () => prepareDeepReview(input.value));
+  } catch (error) {
+    status.textContent = error.message;
+  } finally {
+    button.disabled = false;
+  }
+});
+
+function linesFrom(id) {
+  return document.getElementById(id).value.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+}
+
+async function prepareDeepReview(target) {
+  const button = document.getElementById("deep-plan-button");
+  const planEl = document.getElementById("deep-plan");
+  button.disabled = true;
+  planEl.textContent = "Preparing the bounded file list…";
+  try {
+    const response = await fetch("/api/deep", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ operation: "plan", target }) });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.error || "The deep-review plan could not be prepared.");
+    const p = data.plan;
+    planEl.innerHTML = `<div class="report-section"><p><strong>${p.file_count} file(s), approximately ${p.bytes} bytes / ${p.estimated_input_tokens} input tokens.</strong></p><p class="deep-note">${p.note} Files will be sent to Anthropic only after you provide your key and confirm.</p><div class="report-item">${p.files.map(f => escapeHtml(f.path)).join("<br>")}</div><label for="deep-key">Anthropic API key</label><input id="deep-key" type="password" autocomplete="off" placeholder="sk-ant-…"><p class="deep-note">Used once for this review. RepoCheck does not store it. Anthropic charges your account.</p><label><input id="deep-consent" type="checkbox"> I understand that the selected files and authorization details will be sent to Anthropic and charged to my Anthropic account.</label><button id="deep-run-button" type="button" disabled>Run deep review</button><div id="deep-run-status" class="checker-status"></div></div>`;
+    document.getElementById("deep-consent").addEventListener("change", event => { document.getElementById("deep-run-button").disabled = !event.target.checked; });
+    document.getElementById("deep-run-button").addEventListener("click", () => runDeepReview(target));
+  } catch (error) {
+    planEl.textContent = error.message;
+  } finally {
+    button.disabled = false;
+  }
+}
+
+async function runDeepReview(target) {
+  const keyInput = document.getElementById("deep-key");
+  const status = document.getElementById("deep-run-status");
+  const payload = { operation: "run", target, api_key: keyInput.value, task: document.getElementById("deep-task").value, allowed_data: linesFrom("deep-data"), allowed_recipients: linesFrom("deep-recipients"), allowed_actions: linesFrom("deep-actions") };
+  status.textContent = "Running the Anthropic review…";
+  try {
+    const response = await fetch("/api/deep", { method: "POST", headers: { "Content-Type": "application/json" }, cache: "no-store", body: JSON.stringify(payload) });
+    const data = await response.json().catch(() => ({}));
+    keyInput.value = "";
+    if (!response.ok) throw new Error(data.error || "The deep review could not complete.");
+    const failed = data.disposition === "ANALYSIS_FAILED";
+    let html = `<strong>Deep scope review: ${escapeHtml(data.disposition || "UNKNOWN")}</strong>`;
+    if (failed) html += `<p>${escapeHtml(data.failure_reason || "The review did not produce a reliable result.")}</p>`;
+    (data.findings || []).forEach(f => {
+      html += `<div class="report-item"><strong>${escapeHtml(f.severity || "review")}</strong><p>${escapeHtml(f.summary || "Finding")}</p>`;
+      (f.evidence || []).slice(0, 3).forEach(ev => { html += `<div class="report-meta">${escapeHtml(ev.path || "file")}: ${escapeHtml(ev.quote || "")}</div>`; });
+      html += `</div>`;
+    });
+    status.innerHTML = html;
+  } catch (error) {
+    keyInput.value = "";
+    status.textContent = error.message;
+  }
+}
+
+document.querySelectorAll("[data-example]").forEach(button => button.addEventListener("click", () => {
+  document.getElementById("target-input").value = button.dataset.example;
+  document.getElementById("target-input").focus();
+}));
 
 async function fetchCase(caseId, modelKey) {
   const key = caseId + "__" + modelKey;

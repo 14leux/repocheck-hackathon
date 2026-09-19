@@ -45,6 +45,22 @@ Python module names, and the GitHub repo itself are still `repocheck` —
 changing those would break every existing clone and install command, so
 only the name you *see* changed, not the one you *type*.)*
 
+## Quick start
+
+Run a free static check against a public GitHub repository:
+
+```bash
+# Windows PowerShell
+py -3.11 repocheck.py owner/repo
+
+# macOS/Linux
+python3 repocheck.py owner/repo
+```
+
+The scan never installs or executes the target. `CLEAR`, `CAUTION`, and
+`DANGER` describe the security result; the process exit code only says whether
+the scan completed reliably. An incomplete scan is not a clean result.
+
 ## Install
 
 Nothing to install. Dr. RepoCheck is pure Python standard library — no
@@ -104,6 +120,11 @@ finished scan (regardless of verdict color), 1 for a failed or
 degraded one (a source was down, the repo didn't exist, etc.). Check
 the verdict field/color for the actual security result.
 
+The website also accepts a public GitHub repository or `SKILL.md` URL for a
+bounded static scan. The optional deep scope review is Anthropic-only in this
+release and uses an API key supplied by the visitor for one request; the key
+is not stored by RepoCheck.
+
 ### What gets checked
 
 **Repo mode** — five pillars, combined into one verdict:
@@ -125,7 +146,7 @@ the verdict field/color for the actual security result.
    the caveat spells out the actual next step (a multi-engine scan
    like VirusTotal before running it) and its limit (a clean AV result
    doesn't verify the README's claims or its links).
-5. A **plain-language verdict** combining all four, with the most
+5. A **plain-language verdict** combining all five, with the most
    severe finding always driving the color (never averaged away).
 
 **Skill mode** — the differentiated case. The dominant real-world
