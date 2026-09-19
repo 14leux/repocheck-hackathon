@@ -150,6 +150,36 @@
   .verdict.caution{background:var(--gold-soft); color:var(--gold);}
   .verdict.danger,.verdict.incomplete{background:var(--danger-soft); color:var(--danger);}
   .report-section{border-top:1px solid var(--border); padding-top:12px; margin-top:14px;}
+  .flagline{display:flex; gap:12px; align-items:flex-start; border:2px solid; border-radius:12px;
+    padding:12px 14px; margin-bottom:14px;}
+  .flagline .dot{width:34px; height:34px; border-radius:999px; display:flex; align-items:center;
+    justify-content:center; font-size:18px; font-weight:800; flex:0 0 auto; color:var(--card);}
+  .flagline .flagname{font-size:19px; font-weight:800; letter-spacing:.01em;}
+  .flagline .plain{font-size:16px; color:var(--ink); margin-top:2px;}
+  .flagline .advice{font-size:15px; color:var(--ink); margin-top:2px;}
+  .flagline .tech{font-size:12px; color:var(--ink-soft); margin-top:4px; letter-spacing:.06em;}
+  .flag-green{border-color:var(--accent); background:var(--accent-soft); color:var(--accent);}
+  .flag-green .dot{background:var(--accent);}
+  .flag-amber{border-color:var(--gold); background:var(--gold-soft); color:var(--gold);
+    border-style:dashed;}
+  .flag-amber .dot{background:var(--gold);}
+  .flag-red{border-color:var(--danger); background:var(--danger-soft); color:var(--danger);}
+  .flag-red .dot{background:var(--danger);}
+  .flag-grey{border-color:var(--ink-soft); color:var(--ink-soft); border-style:dotted;
+    background:repeating-linear-gradient(135deg, transparent 0 7px,
+      rgba(128,128,128,.14) 7px 9px);}
+  .flag-grey .dot{background:var(--ink-soft);}
+  .keybox{border:1px solid var(--border); background:var(--card); border-radius:14px;
+    padding:18px; margin:26px auto 0; max-width:960px;}
+  .keybox h2{font-size:18px; margin:0 0 4px;}
+  .keybox .sub{font-size:15px; color:var(--ink-soft); margin:0 0 14px;}
+  .keygrid{display:grid; gap:10px; grid-template-columns:repeat(4, 1fr);}
+  .keygrid .flagline{margin-bottom:0; flex-direction:column; gap:6px;}
+  .keygrid .dot{width:26px; height:26px; font-size:14px;}
+  .keygrid .flagname{font-size:15px;}
+  .keygrid .plain{font-size:14px;}
+  @media (max-width:860px){ .keygrid{grid-template-columns:repeat(2, 1fr);} }
+  @media (max-width:480px){ .keygrid{grid-template-columns:1fr;} }
   .report-section h3{font-size:14px; margin:0 0 7px;}
   .report-section p{font-size:14px; margin:0 0 8px;}
   .report-item{font-size:13px; padding:10px 0; border-top:1px solid var(--border);}
@@ -225,6 +255,32 @@
       </ol>
     </form>
     <div class="live-report" id="live-report" aria-live="polite"></div>
+    <div class="keybox" aria-label="What the colours mean">
+      <h2>What the colours mean</h2>
+      <p class="sub">Every report ends in one of these four. Read the colour, then read the evidence.</p>
+      <div class="keygrid">
+        <div class="flagline flag-red">
+          <span class="dot" aria-hidden="true">!</span>
+          <div><div class="flagname">RED FLAG</div>
+          <div class="plain">This would do more than you allowed. Do not install it yet.</div></div>
+        </div>
+        <div class="flagline flag-amber">
+          <span class="dot" aria-hidden="true">?</span>
+          <div><div class="flagname">AMBER FLAG</div>
+          <div class="plain">Take care. Something here needs a person to look at it.</div></div>
+        </div>
+        <div class="flagline flag-green">
+          <span class="dot" aria-hidden="true">&#10003;</span>
+          <div><div class="flagname">GREEN FLAG</div>
+          <div class="plain">Good to go, as far as this check can see. Not a safety guarantee.</div></div>
+        </div>
+        <div class="flagline flag-grey">
+          <span class="dot" aria-hidden="true">&#8709;</span>
+          <div><div class="flagname">NO RESULT</div>
+          <div class="plain">The check did not finish. Treat it as unknown, never as safe.</div></div>
+        </div>
+      </div>
+    </div>
     <div class="trust-panel" aria-label="RepoCheck guarantees">
       <div><strong>No execution</strong>Scanned code never runs.</div>
       <div><strong>Static first</strong>No model call for the basic report.</div>
@@ -322,6 +378,26 @@ const statusCopy = {
   UNKNOWN: ["incomplete", "INCOMPLETE", "RepoCheck could not complete every check. Do not treat this as a clean result."]
 };
 
+// The same four outcomes in words anyone can act on. A check that did not
+// finish is deliberately not green: "we could not look" and "we looked and
+// found nothing" are different answers.
+const flagCopy = {
+  CLEAR: ["flag-green", "\u2713", "GREEN FLAG", "Nothing beyond what you allowed was found in these files."],
+  CAUTION: ["flag-amber", "?", "AMBER FLAG", "Take care. Something here needs a person to look at it."],
+  DANGER: ["flag-red", "!", "RED FLAG", "This would do more than you allowed."],
+  UNKNOWN: ["flag-grey", "\u2205", "NO RESULT", "The check did not finish, so nothing was decided."]
+};
+
+function renderFlag(verdict, technical, advice) {
+  const [klass, glyph, name, plain] = flagCopy[verdict] || flagCopy.UNKNOWN;
+  return `<div class="flagline ${klass}" role="status">` +
+    `<span class="dot" aria-hidden="true">${glyph}</span><div>` +
+    `<div class="flagname">${name}</div>` +
+    `<div class="plain">${escapeHtml(plain)}</div>` +
+    `<div class="advice">${escapeHtml(advice)}</div>` +
+    `<div class="tech">${escapeHtml(technical)}</div></div></div>`;
+}
+
 function renderStaticReport(report) {
   const verdict = report.scan_status === "INCOMPLETE" ? "UNKNOWN" : (report.verdict || "UNKNOWN");
   const [klass, label, summary] = statusCopy[verdict] || statusCopy.UNKNOWN;
@@ -333,7 +409,8 @@ function renderStaticReport(report) {
   }[verdict];
   let html = `<h2>Static report</h2>`;
   html += `<div class="report-meta">${escapeHtml(report.repo || "GitHub target")} · ${escapeHtml(report.mode || "scan")} · ${escapeHtml(report.scan_timestamp || "timestamp unavailable")}</div>`;
-  html += `<span class="verdict ${klass}">${label}</span><div class="report-section"><p>${summary}</p><div class="decision"><strong>What should I do?</strong> ${nextAction}</div></div>`;
+  html += renderFlag(verdict, label, nextAction);
+  html += `<div class="report-section"><p>${summary}</p></div>`;
   if (report.about) html += `<div class="report-section"><h3>What this is</h3><p>${escapeHtml(report.about)}</p></div>`;
   const findings = report.findings || [];
   html += `<div class="report-section"><h3>Findings (${findings.length})</h3>`;
@@ -493,10 +570,24 @@ function badgeLabel(disposition) {
            ANALYSIS_FAILED: "ANALYSIS FAILED", INSPECT: "INSPECT" }[disposition] || disposition;
 }
 
+// A deep-review disposition maps onto the same four colours as a static verdict.
+function dispositionVerdict(disposition) {
+  return { EXCEEDS_SCOPE: "DANGER", NO_EXCESS_FOUND_IN_SCOPE: "CLEAR",
+           INSPECT: "CAUTION", ANALYSIS_FAILED: "UNKNOWN" }[disposition] || "UNKNOWN";
+}
+
+const dispositionAdvice = {
+  EXCEEDS_SCOPE: "Do not install it until someone you trust has read the quoted lines.",
+  NO_EXCESS_FOUND_IN_SCOPE: "Good to go, as far as this check can see. This is not a safety guarantee.",
+  INSPECT: "Read the unresolved part below before you decide.",
+  ANALYSIS_FAILED: "Treat this as unknown, not as safe."
+};
+
 function renderRun(data) {
   const model = data.run_record ? data.run_record.model : (data.model_key || "?");
   let html = `<div class="model">${model}</div>`;
-  html += `<span class="badge ${badgeClass(data.disposition)}">${badgeLabel(data.disposition)}</span>`;
+  html += renderFlag(dispositionVerdict(data.disposition), badgeLabel(data.disposition),
+                     dispositionAdvice[data.disposition] || dispositionAdvice.ANALYSIS_FAILED);
   if (data.reviewer_manipulation_detected) {
     html += `<div class="flag">reviewer manipulation attempt detected</div>`;
   }
