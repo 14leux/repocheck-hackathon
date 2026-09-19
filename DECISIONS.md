@@ -1063,3 +1063,124 @@ for its "what this is / what to do" lines. Any future caveat category
 must follow the same convention. `link_scan.RULESET_VERSION` follows
 DECISION 012's versioned-ruleset pattern and is now reported alongside
 the other three ruleset versions in both text and `--json` output.
+
+## DECISION 027 — Deep scan collects one bounded joint bundle per scan, not one request per file
+
+**Date:** 2026-09-19
+
+**Context:** `deep_scan.py`'s `run_deep_scan()` called the model once per
+high-risk file, discarding each answer into a separate per-path dict.
+Every priority hackathon case (a credential traced from `collect.py`
+through `schema.json` into `send.py`; a setup branch reached from
+`SKILL.md` through `references/setup.md`) is a cross-file question. A
+one-file-at-a-time loop cannot answer it — not "answers it badly," but
+structurally cannot see the second file while reasoning about the
+first. Found while executing the hackathon's Breakthrough-track
+handoff, but the defect predates the hackathon and blocks M9's stated
+goal regardless of it.
+
+**Decision:** New `bundle.py` collects many files into one request:
+hard caps on file count, per-file bytes, and total bytes, with every
+cap overflow recorded as an explicit coverage gap rather than a silent
+drop; a per-bundle random nonce in the delimiter tag names so content
+cannot forge a boundary or impersonate another file's tag; a snapshot
+digest computed over a canonical sorted-path manifest, stable across
+runs despite the random nonce. `run_deep_scan()` now makes exactly one
+joint request per scan instead of one per file.
+
+**Rejected alternatives:**
+- **Keep per-file calls, correlate results afterward with a second
+  "synthesis" call** — rejected; doubles API cost per scan and the
+  synthesis call still can't cite text from files it wasn't shown,
+  so citation validation (DECISION 028) would have nothing to check
+  against for cross-file claims.
+- **Send the whole repository tree as context on every call** —
+  rejected; unbounded input size defeats the point of "bounded," and
+  most files in a real repo are irrelevant to the high-risk selection
+  DECISION 015 already established.
+
+**Tradeoffs:** A single request now costs more per call (more input
+tokens) but far fewer calls per scan. The bounds mean a large or
+deeply-nested high-risk file set will hit a cap and report a coverage
+gap instead of being silently truncated — this is the intended
+behavior, not a limitation to route around.
+
+**Implications:** Any future caller of `run_deep_scan()` gets one
+result dict per scan (disposition, findings, coverage_gaps, run_record,
+bundle_digest), not a per-path dict. `verify_deep_scan.py`'s
+single-file `build_user_message()` path is preserved unchanged for its
+own hand-authored adversarial strings, which don't need bundling.
+
+## DECISION 028 — User authorization is supplied outside the analyzed bundle; malformed/refused/truncated output always maps to ANALYSIS_FAILED
+
+**Date:** 2026-09-19
+
+**Context:** Two related defects, both found live during hackathon
+fixture testing. First: `run_deep_scan()` had no parameter for the
+user's stated task and allowed scope — every fixture had to declare its
+own permission inside `SKILL.md`, which is exactly the
+"a repository's own text cannot authorize its own behavior" problem the
+project's skill-mode scanning already exists to reject (see DECISION
+015's rationale, now contradicted by the deep-scan pipeline's own
+input contract). Second: `deep_scan.py` converted a `JSONDecodeError`
+into an empty `findings: []` list, which a caller then prints as
+"no findings" — a parse failure rendering as a clean scan is the exact
+failure mode DECISION 007's deep-scan pillar was supposed to avoid.
+Live testing also surfaced two variants of the same risk not
+originally anticipated: a markdown-fenced JSON response (cosmetic, not
+a real failure) and a genuine model safety refusal (a real failure that
+must not be silently swallowed either).
+
+**Decision:**
+1. `run_deep_scan(..., user_intent=None)` places the user's task/scope
+   in its own `<user_task_and_scope>` tag, positioned before the
+   nonce-delimited bundle region, with explicit system-prompt text that
+   only that block can authorize the analyzed content's behavior —
+   nothing inside the delimited data can expand or override it
+   regardless of what the data claims about its own approval.
+2. `ModelResponse` (`interfaces.py`) carries `stop_reason`,
+   `stop_details`, `usage`, `model`, `request_id`, `latency_ms` instead
+   of a bare string, so a refusal and a truncation are distinguishable
+   from a normal answer instead of all three arriving as "some text."
+3. Malformed JSON, a refusal (`stop_reason == "refusal"`), a truncation
+   (`stop_reason == "max_tokens"`), an invalid/missing disposition
+   value, and a citation that doesn't match the exact bundle bytes sent
+   all route through one `_analysis_failed()` helper into
+   `disposition: "ANALYSIS_FAILED"` — never an empty findings list.
+4. A markdown code-fence wrapper around otherwise-valid JSON is
+   stripped before parsing (`_strip_markdown_fence()`), applied
+   identically regardless of which model produced the response — this
+   is explicitly *not* a per-model repair, since it changes nothing
+   about whether the underlying content was correct, only whether a
+   purely cosmetic formatting choice is allowed to cause a false
+   `ANALYSIS_FAILED`.
+
+**Rejected alternatives:**
+- **Let the caller pass permission as freeform text appended to the
+  bundle** — rejected; indistinguishable from bundle content once
+  concatenated, defeating the purpose.
+- **Retry automatically on a refusal with a fallback model** —
+  rejected for this pipeline; a refusal silently answered by a
+  different model would misattribute that model's result to the one
+  that actually ran, which matters for any live model comparison. A
+  shipped, non-comparison deployment of this tool might reasonably
+  want a disclosed fallback — that is a product decision distinct from
+  this one, not resolved here.
+- **Treat any non-JSON response as a fatal error requiring a full
+  rerun** — rejected; a markdown fence is common, benign
+  instruction-following noise on Claude models, not a signal that
+  anything about the analysis itself is wrong.
+
+**Tradeoffs:** `user_intent` is optional — omitting it preserves the
+prior behavior exactly, so existing callers are not broken, but a
+caller that omits it gets weaker authorization grounding than one that
+supplies it. The fence-strip only removes a single leading/trailing
+triple-backtick fence; content that is malformed for any other reason
+still correctly fails.
+
+**Implications:** Every future fixture or caller should supply
+`user_intent` rather than embedding a "User permission: ..." line in
+skill content. Any future addition to the model-response schema
+(`ModelResponse`) should extend it rather than reintroduce a bare
+string return path, since `analyze()` is kept only as a thin wrapper
+over `analyze_detailed()` for backward compatibility.

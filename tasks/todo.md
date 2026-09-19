@@ -319,3 +319,41 @@ DONE (verified 2026-09-13) -- no canonical wip.md fields, no Tier-0 index
 tables in KNOWLEDGE.md/DECISIONS.md, no checker wrapper, no
 ruff.toml/pyrightconfig/pre-commit, no CI workflows at all, no Hypothesis
 test on verdict.py, no weekly-deep/dependabot, no gitleaks scan ever run.
+
+## Hackathon session H1 — Breakthrough-track execution (this fork, 2026-09-19)
+
+- [x] Clone stood up as `14leux/repocheck-hackathon`, `upstream` = main
+      project, marked distinctly in `CLAUDE.md`
+- [x] One-page frozen experiment card drafted (`hackathon/EXPERIMENT_CARD.md`)
+      — status of every open decision reconciled below
+- [x] Hard first-hour gate step 2 — one successful live Fable 5.1 call
+      confirmed for real (model/stop_reason/usage/request_id all correct,
+      no ZDR 400)
+- [x] Fixed the deep-scan pipeline's top blind spot: one-file-at-a-time
+      calls that could not answer any cross-file question
+      (DECISIONS.md #027, `bundle.py`)
+- [x] Fixed a real bug found live: markdown-fenced JSON silently becoming
+      `ANALYSIS_FAILED` on otherwise-correct responses (DECISIONS.md #028)
+- [x] Closed the authorization-from-outside-the-bundle gap
+      (`user_intent`, DECISIONS.md #028, `hackathon/BLIND_SPOTS.md` A-2)
+- [x] D-7 (Fable refusal pattern) tested across 4 independent fixture
+      families, two distinct refusal patterns identified and documented
+      (`hackathon/results/`)
+- [x] D-7 narrative decision made: **Option B** (disclose as a limitation,
+      ask organizers) — carried into `HACKATHON_CLAUDE_CODE_HANDOFF.md`,
+      `hackathon/EXPERIMENT_CARD.md`, `KNOWLEDGE.md`
+- [x] Research pass on Breakthrough differentiation — found a serious risk
+      (SkillScope, ACM CCS '26) and revised the handoff's claims lists
+      accordingly
+- [x] Local `.env` secrets support added (`envfile.py`) so
+      `ANTHROPIC_API_KEY`/`GITHUB_TOKEN` don't depend on this harness's
+      non-persistent shell state
+- [ ] **D-1 (carried forward, the sole remaining card blocker)** — organizer
+      answers: existing-project eligibility, approved comparator, accepted
+      evidence standard for "new in Fable 5.1," and how they weigh the
+      disclosed D-7 result against the track's model-advantage requirement
+- [ ] Author `hackathon/prompts/authority_review_v1.txt`, hash it into card §4
+- [ ] Decide whether to build the official held-out H-1/H-2 instances now
+      that their sanity variants have characterized the refusal boundary,
+      or defer per the card's original held-out timing
+- [ ] Demo narrative and rehearsal, once the card can freeze

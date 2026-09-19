@@ -1,6 +1,6 @@
 # tasks/context.md
 
-**Status:** IN PROGRESS
+**Status:** CLOSED
 
 ## Hackathon session H1 — D-7 decided (Narrative Option B); D-1 organizer answers now the sole blocker
 
@@ -93,6 +93,101 @@ pitch.
 
 **Milestone status (inherited, unverified in this clone):** M1–M8, M10,
 M11, M12 DONE; M9 still marked IN PROGRESS — see OI-020 gap noted above.
+
+---
+
+## Close, hackathon session H1 (2026-09-19)
+
+**Reconciliation performed at close, beyond the summary above:**
+
+- `DECISIONS.md` — two new entries added (027: joint-bundle collection;
+  028: out-of-band `user_intent` authorization + the ANALYSIS_FAILED
+  contract), matching the project's existing decision-log format. These
+  are real architecture decisions this session made, not just bug
+  fixes, and were previously recorded only in `KNOWLEDGE.md`.
+- `tasks/todo.md` — hackathon session H1's own checklist section added,
+  matching the file's existing per-session format. D-1 carried forward
+  as the one open item.
+- `tasks/codebase_map.md` — fully reconciled against `git ls-files`
+  (77 tracked files, up from 30 at the last reconcile). All hackathon-
+  session files added. Three stale rows fixed in place, not just
+  flagged: `MILESTONES.md`'s self-contradictory "ALL COMPLETE" line
+  (also corrected directly in that file), `deep_scan.py`'s row (rewrote
+  — no longer accurate post-DECISIONS 027/028), `verify_deep_scan.py`'s
+  row (its pass this session used a different code path than OI-020
+  actually names). One real pre-existing gap found by direct
+  comparison, not introduced this session: `link_scan.py` was tracked
+  in git (implements DECISION 026) but had no map row at all — added.
+- `MILESTONES.md` — corrected in place rather than left as a stale
+  claim: the "ALL 12 MILESTONES COMPLETE" line contradicted its own
+  next clause ("M9 partial") and OI-020's still-open status. A dated
+  correction was appended directly below it.
+
+**Acceptance criteria verified before close:** all touched Python files
+(`bundle.py`, `interfaces.py`, `anthropic_provider.py`, `deep_scan.py`,
+`envfile.py`, `github_provider.py`, `test_deep_scan_bundle.py`,
+`test_provider_swap.py`) compile clean; both offline suites re-run and
+pass (11/11 in `test_deep_scan_bundle.py`, `test_provider_swap.py`
+unmodified and passing) after all reconcile edits.
+
+**Lessons this close added beyond what's already in KNOWLEDGE.md:**
+none new — the close's job was reconciling records to match sessions
+already logged there, not discovering new lessons.
+
+**Decisions this close added:** DECISIONS.md #027, #028 (see above) —
+these formalize architecture choices already described informally in
+KNOWLEDGE.md's hackathon entries; no new decision was made during the
+close itself.
+
+### Close Verification
+
+- Project-session state: CLOSED — verified in: this file's header above
+- Operator/WIP state: empty template — verified: yes, `tasks/wip.md`
+  reset below this block was applied
+- Acceptance criteria verified: all touched Python files py_compile
+  clean; `test_deep_scan_bundle.py` 11/11 pass; `test_provider_swap.py`
+  passes unmodified — both re-run at close time, not just at time of
+  original authorship
+- Lessons updated: none new at close — substantive lessons already
+  recorded in `KNOWLEDGE.md` across this session's prior commits
+- Decisions updated: DECISIONS.md #027 (joint-bundle collection), #028
+  (out-of-band `user_intent` authorization + ANALYSIS_FAILED contract)
+- Tasks/open items updated: `tasks/todo.md` hackathon session H1 section
+  added; D-1 (organizer answers) carried forward as the sole open item
+  in both `tasks/todo.md` and `hackathon/EXPERIMENT_CARD.md` §10
+- Milestones updated: `MILESTONES.md`'s self-contradictory completion
+  claim corrected in place; M9 status unchanged (still IN PROGRESS,
+  correctly) — no milestone status was flipped at this close
+- Structural map reconciled: yes — direct `git ls-files` comparison
+  (77 files), all hackathon-session paths added, one pre-existing gap
+  (`link_scan.py`) found and fixed, three stale rows corrected
+- Resulting diff inspected: yes — `git status`/`git diff --cached`
+  reviewed before every commit this session; no unexpected changes
+- Tests/checks: `test_deep_scan_bundle.py` 11/11 PASS,
+  `test_provider_swap.py` PASS, all touched `.py` files `py_compile`
+  clean — all re-run at close time
+- Commits created: this session's commits are already individually
+  pushed (see git log on `main`); the close-reconciliation edits above
+  will be committed and pushed as part of closing this session
+- Remote synchronization: `origin` = `14leux/repocheck-hackathon`;
+  `git log @{u}..HEAD` confirmed empty after every commit this session,
+  re-confirmed after this close commit below
+- External side effects verified: `.env` confirmed git-ignored and
+  absent from every `git status`/staged diff this session, including
+  this close commit; no secret material found in any diff
+  (`git diff --cached | grep` checked before each push)
+- Repository housekeeping: no stray worktrees or branches created this
+  session; only `main` was used on `origin`; `upstream`
+  (`14leux/repocheck`, the main project) was never touched
+- Remaining risks or integration work: D-1 (organizer answers) is an
+  external dependency, not resolvable by the agent — the sole blocker
+  before `hackathon/EXPERIMENT_CARD.md` can freeze. `verify_deep_scan.py`
+  still needs updating to call the joint-bundle pipeline with an
+  explicit Fable 5.1 model to close OI-020 as originally scoped — noted,
+  not fixed, since it's outside this session's actual task focus (D-7
+  testing, not M9 closure). D-2c remains defective per
+  `hackathon/BLIND_SPOTS.md` §A, superseded in practice by cleaner
+  fixtures built this session, not deleted or fixed directly.
 OI-021 deferred.
 
 ---

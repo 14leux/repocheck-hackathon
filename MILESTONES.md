@@ -468,3 +468,21 @@ Decision 006's ruleset-contribution model), not new discovery.
 earlier this session; Hardening (M9 partial pending a live API key for
 OI-020, M10, M11) and Release (M12) are now done too. RepoCheck is a
 real, working, public tool.
+
+**Correction, hackathon session H1 (2026-09-19, in the `repocheck-hackathon`
+fork):** the sentence above is self-contradictory as written — "ALL 12
+COMPLETE" alongside "M9 partial" in the same breath — and OI-020 has
+never actually closed since this was written; do not read it as M9
+being done. A real `ANTHROPIC_API_KEY` became available this session and
+a substantial amount of live-call evidence was gathered (see
+`KNOWLEDGE.md`, `hackathon/EXPERIMENT_CARD.md` D-7, `hackathon/results/`),
+but through a materially upgraded deep-scan pipeline (joint multi-file
+bundling, out-of-band `user_intent` authorization, a `ModelResponse`
+carrying real `stop_reason`/`usage` — DECISIONS 027/028) that did not
+exist when M9 was scoped. OI-020's two specific named acceptance criteria
+(prompt-injection resistance and a detection win, run through
+`verify_deep_scan.py`) were satisfied only via the older single-file
+interface on `claude-sonnet-4-5`, not via the new joint-bundle pipeline
+on Fable 5.1. M9 should be treated as still IN PROGRESS until that gap is
+explicitly closed or explicitly accepted as sufficient — this correction
+does not itself close it.
