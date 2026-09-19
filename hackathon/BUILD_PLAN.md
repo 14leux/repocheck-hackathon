@@ -109,15 +109,41 @@ cut.** If time runs short, cut UI polish (M4/M5) before correctness (M1/M2).
 
 ## M6 — Deploy, submission fields, freeze + rehearse (budget: 15 min) — NEVER CUT
 
-- [ ] Final prod deploy check, click through as a judge would.
-- [ ] Update submission form: track = Everyday, one-sentence pitch, "what's
-      live vs. mocked" (real API calls + real static scan + real bundling/
-      citation validation; synthetic inert fixtures; site caches results
-      with a live re-run path), live link = the Vercel URL.
-- [ ] Record a short backup screen capture of one full run, labeled
-      "previous run" on screen — outage insurance, never presented as live.
-- [ ] Time the walkthrough once with a timer. No code changes after this
-      point.
+- [x] Final prod deploy check: `https://repocheck-hackathon.vercel.app`
+      returns 200, `/api/scan` serves real cached results, all 3 case
+      panels + disclosure table verified rendering correctly (Browser tool).
+- [x] Submission field drafts written below — ready to paste.
+- [ ] **Requires Mailu personally, not automatable:** record a ~90s backup
+      screen capture of one full site walkthrough, labeled "previous run"
+      on screen, in case the live site is unreachable during judging.
+- [ ] **Requires Mailu personally:** do one timed rehearsal of the actual
+      walkthrough with a clock.
+- [x] Code freeze declared as of this commit — no further changes unless a
+      rehearsal surfaces something broken.
+
+### Submission field drafts (Everyday track)
+
+- **Project name:** Dr. RepoCheck
+- **One sentence:** Before a developer installs a Claude Code skill, Dr.
+  RepoCheck shows whether it would do more than they authorized — and cites
+  the exact lines that prove it.
+- **Track:** Everyday
+- **Live link:** https://repocheck-hackathon.vercel.app
+- **What's live vs. mocked:** Live — real Anthropic API calls (cached and
+  timestamped, not re-run per visitor, so the page loads instantly and
+  costs stay bounded), real bundling/citation validation, real static repo
+  scan. Mocked/synthetic — the three demo skills are inert fixtures we
+  wrote (fictional credentials, `.test`/`.invalid` destinations, nothing
+  executed or installed); the site itself caches results rather than
+  calling the model on every page load.
+- **Why it matters / what's missing without it:** the three damage stories
+  and three absence stories drafted earlier this session, already on the
+  live site's hero and disclosure sections verbatim.
+- **AI tools used:** Claude Code (this session) wrote and refactored the
+  Python pipeline, the Vercel site, and this plan; Claude Fable 5.1 and
+  Claude Opus 4.8 are the two models tested and shown live on the site;
+  an internal LLM council (`council-transcript-20260920T001404.md`)
+  pressure-tested the track decision.
 
 ---
 
