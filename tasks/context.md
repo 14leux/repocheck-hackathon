@@ -2,6 +2,39 @@
 
 **Status:** CLOSED
 
+## Post-H1 ad-hoc follow-up (2026-09-19), continued — PR #2 reviewed and merged whole
+
+**4. Reviewed and merged `Everline Mipata`'s PR #2** (`14leux/repocheck-hackathon#2`,
+"Add differential harness for the static pillars", branch `Eve-static-harness`).
+Unlike PR #1, this one was clean end to end: single commit, based on
+`7bb5885` (nearly current), no duplicate/stale content. Adds
+`test_fixtures.py` — a differential harness over the *static* pillars
+(`code_scan.py`/`skill_scan.py`, no LLM call) asserting both directions on
+matched fixture pairs (malicious must fire, legit twin must stay clean),
+plus a third category, `KNOWN_GAP`, for a real, verified, previously-
+undocumented limitation: the co-occurrence rule in both pillars only checks
+credential-access and network-send *within a single file*, so the RC-01
+pattern split across `collect.py`/`schema.json`/`send.py`
+(`malicious-aggregate-report/`) is invisible to the free static scan —
+confirmed by running it: 4/4 `KNOWN_GAP` cases correctly produce zero
+findings. Complementary to (not a duplicate of) B6's fix, which addresses
+the same underlying pattern but for the paid deep-scan/LLM pipeline
+specifically. One real overlap noted and disclosed on the PR: its
+`malicious-aggregate-report`/`legit-aggregate-report` fixtures and this
+stretch's earlier `credential-disguised-report` fixture are the same RC-01
+pattern (same field names, identical `send.py`), independently built from
+the same handoff spec by two people — not a conflict since they exercise
+different code paths, but flagged so it's not a surprise later.
+
+Cherry-picked (`-x`) onto `main` as `97320a1`, preserving Everline's
+authorship. Re-verified after merge: `test_fixtures.py` (2 detected, 4
+clean, 4 known gaps, matches the PR's own numbers), `test_deep_scan_bundle.py`
+11/11, `test_provider_swap.py` pass, `hackathon/test_build_requirements.py`
+picked up the 3 new fixture directories automatically (59→74 checks, still
+45/74 pass, no regressions). Posted a review comment explaining the merge
+and the RC-01 overlap, then closed PR #2 on GitHub (now merged, unlike PR
+#1 which is still open pending a decision — see below).
+
 ## Post-H1 ad-hoc follow-up (2026-09-19) — PR #1 reviewed and partially landed, submission-guide reviewed and partially landed, B6 fixed
 
 No formal session was opened for this stretch (H1 is still the last formally
