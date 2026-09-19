@@ -2,6 +2,44 @@
 
 **Status:** CLOSED
 
+## Session 5 — Hackathon handoff and intentional close
+
+**Goal:** Consolidate the Breakthrough-track hackathon plan, council review,
+researched edge cases, safe fixture specifications, and Claude Code starting
+instructions into a durable handoff for continuation by Claude Code.
+
+**What was done:** Created `HACKATHON_CLAUDE_CODE_HANDOFF.md`, the full
+`council-transcript-20260919T201238.md`, and the `research/` casebook files.
+The handoff records the user-confirmed Breakthrough track, Fable 5.1/API
+requirement, four-person roles, hard first-hour capability gate, bounded
+skill-authority-review scope, malformed-output risk, comparison protocol,
+safe synthetic cases, source links, and the Claude Code starting prompt.
+The attached context document said Everyday; the later user answer saying
+Breakthrough was treated as authoritative.
+
+**Next session starts with:** Open Claude Code in this repository, read
+`HACKATHON_CLAUDE_CODE_HANDOFF.md` and the canonical project records, verify
+the organizer-approved comparator and Fable model identifier, then execute
+the handoff's one-page experiment card before building UI.
+
+**Blockers:** the organizer's exact comparator and existing-project eligibility
+were not available in this session. No code implementation or live Fable
+comparison was performed here.
+
+**Milestone status:** existing project status unchanged — M1–M8, M10, M11,
+M12 DONE; M9 remains IN PROGRESS pending OI-020; OI-021 remains deferred.
+
+Close Verification:
+- KNOWLEDGE.md updated: no — no new implementation learning; research is captured in `research/` and the handoff
+- DECISIONS.md updated: no — no architectural decision was made
+- tasks/todo.md updated: no — no existing task items were completed; hackathon work is carried into the handoff
+- Open Items table updated: no — OI-020 and OI-021 unchanged
+- tasks/codebase_map.md updated: yes — added `link_scan.py` discrepancy and five new handoff/research paths
+- tasks/wip.md reset to empty template: yes
+- git commit created: pending close command
+- git push completed: pending close command
+- git worktree audit: pending close command
+
 ## Session 4 — About-summary in report output; never-auto-install skill guardrail
 
 **Goal:** Two changes Mailu raised from real usage: (1) the report
