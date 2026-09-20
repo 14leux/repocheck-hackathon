@@ -403,3 +403,32 @@ test on verdict.py, no weekly-deep/dependabot, no gitleaks scan ever run.
       frozen-prompt-file+hash, B11 card freeze, most `F1`/`F4` fixture
       hygiene checks on fixtures not in the demo path) — not blocking the
       live demo, tracked for whoever picks this up next
+
+## Re-entry continuation (2026-09-20) — found another operator's work, reviewed 2 more PRs
+
+- [x] Reopened after finding 7 commits landed directly on `main` since
+      the last close (Mailu's own work, not this session's) — free-tier
+      arbitrary-GitHub-target scan (`web_scan.py`, `api/check.py`) and a
+      BYOK deep-scan path (`api/deep.py`), narrative/demo page split.
+      Verified all offline tests still pass, live site still 200s on
+      `/`, `/demo`, `/how-it-works`
+- [x] Reviewed PR #3 ("ui changes") — actually a comparator-model swap
+      to `claude-opus-5` plus a real defensive fix. Took only the fix
+      (`78bf909`); kept comparator on `claude-opus-4-8` (DECISIONS.md
+      #031) rather than let a UI PR silently change the demo's central
+      contrast. PR closed
+- [x] Reviewed and merged whole PR #4 ("Say the verdict in plain words")
+      — plain-language green/amber/red/grey flags, verified live on an
+      isolated preview deploy before merging (`4b6f500`), confirmed
+      `ANALYSIS_FAILED` maps to grey, never green. PR closed
+- [x] Deleted the throwaway `pr4-review` Vercel project used for that
+      isolated preview check
+- [x] Codebase-map reconcile caught a real extraction bug in its own
+      method (a prose mention of `api/` was making every unmapped
+      `api/*.py` file look covered) — fixed the check, found 6 genuinely
+      undocumented files and 2 dead orphaned static files
+      (`public/demo.html`/`how-it-works.html`), all now in the map
+- [ ] **New, carried forward:** OI-024 (why does `claude-opus-5` refuse
+      2 of 4 cases Fable also refuses — deliberately not investigated
+      under the demo deadline) and OI-025 (delete or intentionally keep
+      the 2 dead static files — not this session's call)

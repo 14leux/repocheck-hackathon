@@ -1,8 +1,108 @@
 # tasks/context.md
 
-**Status:** IN PROGRESS
+**Status:** CLOSED
 
-## Re-entry (2026-09-20) — another operator worked since the last close
+## Full close, re-entry continuation (2026-09-20)
+
+**Goal of this continuation:** reopen after finding another operator's
+work on `main`, review 2 more community PRs against the live demo, and
+close cleanly again.
+
+**What was done:**
+1. Re-entry: found 7 commits landed directly on `main` since the last
+   close, all Mailu's own (free-tier arbitrary-repo scan, BYOK deep-scan
+   path, narrative page split). Verified rather than assumed: all
+   offline tests still pass, live site still 200s on all three routes.
+2. Reviewed PR #3 ("ui changes") — actually a `claude-opus-4-8` →
+   `claude-opus-5` comparator swap plus a genuinely good, separable
+   defensive fix. Verified live on the PR branch: opus-5 refuses 2 of 4
+   cached cases with Fable's own refusal category, which would have
+   broken the site's flagship case panel and changed the disclosure
+   table's central contrast. Took only the fix (`78bf909`, cache/model-
+   mismatch guard); kept the comparator pinned (DECISIONS.md #031). PR
+   closed with the reasoning explained in a comment.
+3. Reviewed and merged whole PR #4 ("Say the verdict in plain words") —
+   plain-language flag system. Verified by deploying the branch to an
+   isolated throwaway Vercel project before merging, not just reading
+   the diff: confirmed `ANALYSIS_FAILED` correctly maps to grey "NO
+   RESULT", never green. Merged (`4b6f500`), deployed to production,
+   confirmed live. PR closed. Throwaway preview project deleted.
+4. Full codebase-map reconcile — caught a real bug in the reconcile
+   method itself (a prose mention of `api/` was making every unmapped
+   `api/*.py` file falsely appear covered); fixed the extraction to
+   only count actual table rows, then found 6 genuinely undocumented
+   files and 2 dead orphaned static files, all now in the map.
+
+**Live result, unchanged in substance from the last close, verified
+again:** `https://repocheck-hackathon.vercel.app` — comparator still
+`claude-opus-4-8`, flagship credential-disguised-report case still
+shows its compelling `EXCEEDS_SCOPE` finding, now with a plain-language
+flag layer on top.
+
+**Not done, carried forward (new this stretch):**
+- OI-024: why `claude-opus-5` refuses the same 2 cases Fable refuses —
+  deliberately not investigated, per direct instruction to present
+  rather than dig, given the demo deadline.
+- OI-025: `public/demo.html`/`public/how-it-works.html` are dead,
+  unreferenced static files — not deleted, not this session's call.
+- Everything carried forward from the previous close (OI-022/OI-023,
+  the backup recording and rehearsal, the 17 open P0 acceptance-test
+  items) is still open, untouched this stretch.
+
+**Known blockers:** none blocking the live demo.
+
+### Close Verification
+
+- Project-session state: CLOSED — this file's header above
+- Operator/WIP state: empty template — `tasks/wip.md` unchanged, already
+  at empty template, verified before this close
+- Acceptance criteria verified: `test_deep_scan_bundle.py` 11/11,
+  `test_provider_swap.py`, `test_fixtures.py` all re-run and passing
+  after PR #3/#4 changes; live site verified via Browser tool (PR #4's
+  preview) and via curl (production, all 3 routes, all 4 case/model
+  combos returning correct dispositions) — all re-run at close time
+- Lessons updated: yes — `KNOWLEDGE.md`: the re-entry/another-operator
+  lesson, the codebase-map reconcile's own extraction bug and fix, the
+  PR #3/#4 review findings (opus-5 refusal pattern, the `vercel project
+  rm` confirmation-prompt quirk)
+- Decisions updated: yes — DECISIONS.md #031 (comparator pinned to
+  claude-opus-4-8, PR #3's swap not taken, with rejected alternatives)
+- Tasks/open items updated: yes — `tasks/todo.md` re-entry-continuation
+  section added; OI-024 and OI-025 added to `.agent/instructions.md`
+- Milestones updated: no — nothing this stretch changed M9/OI-020's
+  status; MILESTONES.md's post-H1 addendum from the last close still
+  accurate, not re-touched
+- Structural map reconciled: yes — **found and fixed a real bug in the
+  reconcile method itself** (prose mentions of a path were being
+  counted as real table coverage), then re-ran the corrected check:
+  119 tracked files, 0 unmapped. 6 genuinely undocumented files added
+  with real descriptions (not placeholder rows); 2 dead orphaned static
+  files found and flagged (not deleted)
+- Resulting diff inspected: yes, every commit this stretch
+- Tests/checks: see "Acceptance criteria verified" above
+- Commits created: `78bf909`, `4b6f500`, plus this close's own commit
+  (see below)
+- Remote synchronization: pushed after each commit this stretch;
+  `git log @{u}..HEAD` confirmed empty after each push, re-confirmed
+  after this close's commit below
+- External side effects verified: two GitHub PRs closed with
+  explanatory comments (#3, #4); one Vercel preview project created and
+  deleted for PR #4's review; production redeployed twice (after the
+  cache-guard fix, after PR #4's merge), both confirmed live via curl
+- Repository housekeeping: worktree clean (`pr4-review` worktree
+  directory had a transient Windows file-lock on removal, unregistered
+  from git regardless — see below). Four local-only PR-review branches
+  now exist (`pr-1-kelly`, `pr-2-evarline`, `pr-3-steven`, `pr-4-steven`)
+  — never pushed anywhere, all fully incorporated or deliberately
+  excluded already, flagged not removed per the close protocol's own
+  instruction not to remove unprompted
+- Remaining risks or integration work: OI-024 (opus-5 refusal pattern,
+  deliberately deferred) and OI-025 (dead static files) are new; the
+  backup recording and rehearsal from the previous close are still the
+  two items only Mailu can do
+
+---
+
 
 Reopened at Mailu's request. `git fetch` + `git log e36a326..HEAD` showed
 7 commits landed on `origin/main` since this file's last close

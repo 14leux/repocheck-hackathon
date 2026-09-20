@@ -1292,3 +1292,51 @@ there is no in-product way to add a case without a code change. Any
 future rate-limited live path should be added as a clearly separate,
 audited code path, not a modification of the existing cache-serving
 handler.
+
+---
+
+## DECISION 031 — Comparator model pinned to claude-opus-4-8; PR #3's swap to claude-opus-5 not taken
+
+**Date:** 2026-09-20
+
+**Context:** PR #3 ("ui changes") swapped `api/scan.py`'s `MODEL_IDS["comparator"]`
+from `claude-opus-4-8` to `claude-opus-5` and regenerated `demo_data/`
+accordingly. Verified directly against the PR branch: `claude-opus-5`
+refuses 2 of the 4 cached demo cases (`credential-disguised-report`,
+`task-digest-v1`) with the same `stop_details.category: "cyber"` Fable
+already shows on those — a real finding (a newer model generation
+apparently refusing more on this task shape, not less), but one that
+breaks the site's flagship case panel (`credential-disguised-report`'s
+compelling `EXCEEDS_SCOPE` finding becomes a refusal) and changes the
+disclosure table's central contrast from "Fable uniquely declines" to
+"both current-generation models decline these two."
+
+**Decision:** Keep `MODEL_IDS["comparator"] = "claude-opus-4-8"`. Take
+only the PR's separable, genuinely good defensive fix (a served cached
+result's recorded model is checked against the currently-configured
+model, returning 409 on mismatch rather than silently serving a
+different model's result under the wrong label) — landed independently
+in `78bf909`.
+
+**Rejected alternatives:**
+- **Merge the swap as-is** — rejected: a comparator-model choice that
+  materially changes the demo's central narrative shouldn't land as a
+  side effect of a PR titled "ui changes," reviewed and decided as a UI
+  change. This is a model-selection decision and deserves being made as
+  one, deliberately, not inherited from whichever contributor happened
+  to update the cache most recently.
+- **Investigate why opus-5 refuses these two cases before deciding** —
+  explicitly declined per direct instruction ("no need to dig, we need
+  to present") given the demo deadline. The finding is real and
+  recorded (this entry, `KNOWLEDGE.md`) for whoever picks it up later.
+
+**Tradeoffs:** The comparator now lags one model generation behind
+"current." If `claude-opus-4-8` is ever deprecated or becomes
+unavailable, the cached comparator results become unregeneratable
+as-is and a fresh comparator decision will be forced anyway — this
+defers that decision, it doesn't avoid it permanently.
+
+**Implications:** Any future comparator-model change should go through
+the same scrutiny this entry documents (verify the actual effect on
+disposition outcomes across all cached cases before merging), not be
+treated as routine cache maintenance.

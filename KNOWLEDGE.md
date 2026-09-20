@@ -1206,3 +1206,67 @@ after a new deploy looks exactly like a deploy that didn't take effect,
 when the actual new content is live at the stable alias the whole time.
 Use the stable alias for all external links (submission form, README)
 and for testing after every redeploy.
+
+---
+
+## Post-H1, continued -- another operator worked directly on main between sessions; re-entry caught it before assuming anything
+
+Reopening this project found `origin/main` 7 commits ahead of the last
+close, all authored by Mailu directly (not via a PR): a full "check any
+public GitHub target" free-tier path (`web_scan.py`, `api/check.py`,
+per-IP rate limiting) plus a paid BYOK deep-scan path (`api/deep.py`,
+request-scoped key, never stored/logged/URL'd) and a narrative/demo page
+split (`api/demo_page.py`, `api/how_it_works_page.py`, `vercel.json`
+rewrites). This reverses BUILD_PLAN.md M2's "fixed demo cases only"
+decision -- not flagged as wrong, since the new code is careful about
+what matters (no execution, no stored keys, rate limiting present even
+if self-described as a "starter guard"), but worth recording that a
+scope decision made earlier in a build can get quietly superseded by
+later work on the same repo, and re-entry is exactly the point re-entry
+exists to catch that, not to assume the last checkpoint is still true.
+
+Lesson for the codebase-map reconcile step specifically: a naive
+"is this path mentioned anywhere in the map file" grep produces false
+negatives-as-positives -- `api/` had been mentioned once in a prose
+reconcile note, which made every unmapped `api/*.py` file look
+"covered" by directory-prefix matching that was never a real table row.
+Fixed by restricting the mapped-set extraction to actual table rows
+(lines starting `| \``) before diffing, which then correctly caught
+6 genuinely undocumented files (`web_scan.py`, `test_web_scan.py`,
+`api/check.py`, `api/deep.py`, `api/demo_page.py`,
+`api/how_it_works_page.py`) and, separately, 2 dead orphaned static
+files (`public/demo.html`, `public/how-it-works.html`) left behind
+when routing was switched to Python-function rewrites one commit later
+-- neither ever referenced anywhere, found by direct grep, not deleted
+(not this session's call).
+
+## Post-H1, continued -- reviewed 2 more PRs; a real model-behavior finding surfaced and was deliberately not chased under a demo deadline
+
+PR #3 ("ui changes") turned out to be mostly a comparator-model swap
+(`claude-opus-4-8` -> `claude-opus-5`) with a genuinely good, separable
+defensive fix riding along (a cached result's recorded model is now
+checked against the currently-configured model, 409 on mismatch,
+instead of silently serving a stale-model result under the wrong
+label). The swap itself surfaced something real: `claude-opus-5`
+refuses 2 of the same 4 demo cases Fable already refuses
+(`credential-disguised-report`, `task-digest-v1`), same `cyber`
+category -- a newer model generation apparently refusing more on this
+task shape, not less. Took only the defensive fix; kept the comparator
+on `claude-opus-4-8` rather than let a UI PR silently change the demo's
+central contrast (Fable declines uniquely vs. both models now decline
+the same two cases). The finding itself is real and worth investigating
+later, deliberately deferred rather than chased, since understanding
+*why* a newer model refuses more wasn't necessary to ship the demo
+correctly.
+
+PR #4 ("Say the verdict in plain words") was reviewed by deploying the
+branch to an isolated throwaway Vercel project rather than trusting a
+visual diff read alone -- confirmed live that `ANALYSIS_FAILED` maps to
+grey "NO RESULT", never green, which is the one thing that actually
+mattered (a failed/refused analysis must never be visually
+indistinguishable from a clean pass). Merged whole. The throwaway
+Vercel project needed `vercel project rm <name>` piped a literal `y`
+(neither `--yes` nor `--non-interactive` suppressed its confirmation
+prompt in this CLI version) -- worth remembering for the next
+disposable preview project instead of re-discovering the same CLI
+quirk.
